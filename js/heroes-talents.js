@@ -1,16 +1,16 @@
 // a loader for the data contained in the heroes folder of heroes-talents
 
-const fs = require('fs');
+const fs = require("fs");
 
-const Awards = require('./game-data/awards');
-const TalentRenames = require('./game-data/talent-renames');
+const Awards = require("./game-data/awards");
+const TalentRenames = require("./game-data/talent-renames");
 
 class HeroesTalents {
   constructor(path, extra) {
-    this._heroPath = path + '/hero';
-    this._heroImgPath = path + '/images/heroes';
-    this._talentImgPath = path + '/images/talents';
-    this._missingPath = extra + '/deleted_talents.json';
+    this._heroPath = path + "/hero";
+    this._heroImgPath = path + "/images/heroes";
+    this._talentImgPath = path + "/images/talents";
+    this._missingPath = extra + "/deleted_talents.json";
 
     this.loadData();
   }
@@ -25,7 +25,7 @@ class HeroesTalents {
 
     // extra data
     // load this first in case it gets overwritten
-    console.log('loading deleted talents from ' + this._missingPath);
+    console.log("loading deleted talents from " + this._missingPath);
     let deleted = require(this._missingPath); // eslint-disable-line global-require
     for (let i in deleted) {
       deleted[i].removed = true;
@@ -35,10 +35,12 @@ class HeroesTalents {
     let files = fs.readdirSync(this._heroPath);
 
     for (let i = 0; i < files.length; i++) {
-      let file = this._heroPath + '/' + files[i];
+      let file = this._heroPath + "/" + files[i];
 
-      console.log('loading ' + file + ' (' + (i + 1) + '/' + files.length + ')');
-      let data = require(file);  // eslint-disable-line global-require
+      console.log(
+        "loading " + file + " (" + (i + 1) + "/" + files.length + ")"
+      );
+      let data = require(file); // eslint-disable-line global-require
 
       // sort everything, some data is replicated but that's ok
       this._heroes[data.name] = data;
@@ -47,7 +49,8 @@ class HeroesTalents {
 
       for (let tier in data.talents) {
         for (let t in data.talents[tier]) {
-          this._talents[data.talents[tier][t].talentTreeId] = data.talents[tier][t]
+          this._talents[data.talents[tier][t].talentTreeId] =
+            data.talents[tier][t];
         }
       }
 
@@ -74,8 +77,7 @@ class HeroesTalents {
         result = result.concat(this._roles[r][data.type]);
       }
       return result;
-    }
-    else if (data.type) {
+    } else if (data.type) {
       return this._roles[data.role][data.type];
     }
 
@@ -95,14 +97,13 @@ class HeroesTalents {
       return this._heroes[name].role;
     }
 
-    return '';
+    return "";
   }
 
   heroNameFromAttr(attr) {
-    if (attr in this._heroAttr)
-      return this._heroAttr[attr];
+    if (attr in this._heroAttr) return this._heroAttr[attr];
 
-    return 'NotFound';
+    return "NotFound";
   }
 
   heroNameFromLCAttr(attr) {
@@ -110,15 +111,14 @@ class HeroesTalents {
       return this._lcAttr[attr];
     }
 
-    return 'NotFound';
+    return "NotFound";
   }
 
   heroIcon(hero) {
-    if (hero in this._heroes)
-      return this._heroes[hero].icon;
+    if (hero in this._heroes) return this._heroes[hero].icon;
 
     // specific to this project
-    return '../../../images/not-found.png';
+    return "../../../images/not-found.png";
   }
 
   talentIcon(talentName) {
@@ -129,7 +129,7 @@ class HeroesTalents {
     }
 
     // specific to this project
-    return '../../../images/not-found.png';
+    return "../../../images/not-found.png";
   }
 
   talentDesc(talentName) {
@@ -139,7 +139,7 @@ class HeroesTalents {
       return this._talents[id].description;
     }
 
-    return 'No Description Found.';
+    return "No Description Found.";
   }
 
   talentName(talentName) {
@@ -147,13 +147,13 @@ class HeroesTalents {
 
     if (id in this._talents) {
       if (this._talents[id].removed) {
-        return this._talents[id].name + ' [Removed]';
+        return this._talents[id].name + " [Removed]";
       }
 
       return this._talents[id].name;
     }
 
-    return id + ' [Removed]';
+    return id + " [Removed]";
   }
 
   // checks for renamed talent IDs
@@ -166,11 +166,10 @@ class HeroesTalents {
   }
 
   awardInfo(award) {
-    if (award in Awards)
-      return Awards[award];
+    if (award in Awards) return Awards[award];
 
-    console.log(award + ' is unknown!');
-    return { name: 'Unknown Award', subtitle: '', image: 'not-found.png'};
+    console.log(award + " is unknown!");
+    return { name: "Unknown Award", subtitle: "", image: "not-found.png" };
   }
 }
 

@@ -1,4 +1,4 @@
-const FormData = require('form-data');
+const FormData = require("form-data");
 
 var settingsRowTemplate;
 var replayQueue = [];
@@ -15,63 +15,69 @@ var listedReplays = [];
 
 function initSettingsPage() {
   // templates
-  settingsRowTemplate = Handlebars.compile(getTemplate('settings', '#replay-row-template').find('tr')[0].outerHTML);
-  collectionRowTemplate = Handlebars.compile(getTemplate('settings', '#collection-row-template').find('tr')[0].outerHTML);
-  collectionCacheRowTemplate = Handlebars.compile(getTemplate('settings', '#collection-cache-row-template').find('tr')[0].outerHTML);
+  settingsRowTemplate = Handlebars.compile(
+    getTemplate("settings", "#replay-row-template").find("tr")[0].outerHTML
+  );
+  collectionRowTemplate = Handlebars.compile(
+    getTemplate("settings", "#collection-row-template").find("tr")[0].outerHTML
+  );
+  collectionCacheRowTemplate = Handlebars.compile(
+    getTemplate("settings", "#collection-cache-row-template").find("tr")[0]
+      .outerHTML
+  );
 
-  let date = settings.get('lastReplayDate');
+  let date = settings.get("lastReplayDate");
   if (!date) {
     date = new Date(2012, 1, 1);
-    settings.set('lastReplayDate', date);
+    settings.set("lastReplayDate", date);
   }
 
-  let uploadToHotsAPI = settings.get('uploadToHotsAPI');
+  let uploadToHotsAPI = settings.get("uploadToHotsAPI");
   if (!uploadToHotsAPI) {
     uploadToHotsAPI = false;
-    settings.set('uploadToHotsAPI', uploadToHotsAPI);
+    settings.set("uploadToHotsAPI", uploadToHotsAPI);
   }
 
-  let sendCopyToHotsLogs = settings.get('sendCopyToHotsLogs');
+  let sendCopyToHotsLogs = settings.get("sendCopyToHotsLogs");
   if (!sendCopyToHotsLogs) {
     sendCopyToHotsLogs = false;
-    settings.set('sendCopyToHotsLogs', sendCopyToHotsLogs);
+    settings.set("sendCopyToHotsLogs", sendCopyToHotsLogs);
   }
 
-  $('#settings-hots-api-button').checkbox({
+  $("#settings-hots-api-button").checkbox({
     onChecked: function() {
-      settings.set('uploadToHotsAPI', true);
-      $('#settings-hots-logs-button').checkbox('enable');
+      settings.set("uploadToHotsAPI", true);
+      $("#settings-hots-logs-button").checkbox("enable");
     },
     onUnchecked: function() {
-      settings.set('uploadToHotsAPI', false);
-      $('#settings-hots-logs-button').checkbox('disable');
+      settings.set("uploadToHotsAPI", false);
+      $("#settings-hots-logs-button").checkbox("disable");
     }
   });
 
   if (sendCopyToHotsLogs) {
-    $('#settings-hots-logs-button').checkbox('set checked');
+    $("#settings-hots-logs-button").checkbox("set checked");
   }
 
   if (uploadToHotsAPI) {
-    $('#settings-hots-api-button').checkbox('check');
-  }
-  else {
-    $('#settings-hots-api-button').checkbox('uncheck');
-    $('#settings-hots-logs-button').checkbox('disable');
+    $("#settings-hots-api-button").checkbox("check");
+  } else {
+    $("#settings-hots-api-button").checkbox("uncheck");
+    $("#settings-hots-logs-button").checkbox("disable");
   }
 
-  $('#settings-hots-logs-button').checkbox({
-    onChecked : function() {
-      settings.set('sendCopyToHotsLogs', true);
+  $("#settings-hots-logs-button").checkbox({
+    onChecked: function() {
+      settings.set("sendCopyToHotsLogs", true);
     },
     onUnchecked: function() {
-      settings.set('sendCopyToHotsLogs', false);
+      settings.set("sendCopyToHotsLogs", false);
     }
   });
 
-  $('#settings-hots-logs-button').popup();
+  $("#settings-hots-logs-button").popup();
 
-  $('#settings-force-duplicate').checkbox({
+  $("#settings-force-duplicate").checkbox({
     onChecked: function() {
       importDuplicates = true;
     },
@@ -81,148 +87,157 @@ function initSettingsPage() {
   });
 
   // handlers
-  $('#settings-set-replay-folder-button').click(setReplayFolder);
-  ipcRenderer.on('replayParsed', function(event, data) {
+  $("#settings-set-replay-folder-button").click(setReplayFolder);
+  ipcRenderer.on("replayParsed", function(event, data) {
     loadReplay(data);
   });
-  $('#start-process-button').click(parseReplays);
-  $('#stop-process-button').click(stopParse);
-  $('#rescan-replays-button').click(startReplayScan);
-  $('#replay-file-start').datepicker();
-  $('#replay-file-start').on('hide.datepicker', function(e) {
-    settings.set('lastReplayDate', e.date);
+  $("#start-process-button").click(parseReplays);
+  $("#stop-process-button").click(stopParse);
+  $("#rescan-replays-button").click(startReplayScan);
+  $("#replay-file-start").datepicker();
+  $("#replay-file-start").on("hide.datepicker", function(e) {
+    settings.set("lastReplayDate", e.date);
     startReplayScan();
   });
-  $('#replay-file-start').datepicker('setDate', date);
-  $('#delete-db-button').click(function() {
-    $('#confirm-db-delete-modal').modal({
-      closable: false,
-      onDeny: function() {
-        return true;
-      },
-      onApprove: function() {
-        DB.deleteDB();
-        app.relaunch();
-        app.quit();
-        return true;
-      }
-    }).modal('show');
+  $("#replay-file-start").datepicker("setDate", date);
+  $("#delete-db-button").click(function() {
+    $("#confirm-db-delete-modal")
+      .modal({
+        closable: false,
+        onDeny: function() {
+          return true;
+        },
+        onApprove: function() {
+          DB.deleteDB();
+          app.relaunch();
+          app.quit();
+          return true;
+        }
+      })
+      .modal("show");
   });
 
-  $('#confirm-db-reset-modal').modal();
+  $("#confirm-db-reset-modal").modal();
 
   // initial settings
-  let path = settings.get('dbPath');
-  $('#settings-set-db-folder input').val(path);
-  $('#settings-set-db-folder-button').click(setDBFolder);
-  $('#settings-reset-db-folder-button').click(resetDBFolder);
+  let path = settings.get("dbPath");
+  $("#settings-set-db-folder input").val(path);
+  $("#settings-set-db-folder-button").click(setDBFolder);
+  $("#settings-reset-db-folder-button").click(resetDBFolder);
 
-  let replayPath = settings.get('replayPath');
-  $('#settings-set-replay-folder input').val(replayPath);
+  let replayPath = settings.get("replayPath");
+  $("#settings-set-replay-folder input").val(replayPath);
 
-  let selectedPlayerID = settings.get('selectedPlayerID');
+  let selectedPlayerID = settings.get("selectedPlayerID");
   // add one thing to the player menu and like init it
   // it's basically temporary
-  let initOpt = '<div class="item" data-value="' + selectedPlayerID + '">' + selectedPlayerID + '</div>';
-  $('#settings-set-player .menu').append(initOpt);
-  $('#settings-set-player').dropdown({
-    action: 'activate',
+  let initOpt =
+    '<div class="item" data-value="' +
+    selectedPlayerID +
+    '">' +
+    selectedPlayerID +
+    "</div>";
+  $("#settings-set-player .menu").append(initOpt);
+  $("#settings-set-player").dropdown({
+    action: "activate",
     fullTextSearch: true,
-    direction: 'downward',
+    direction: "downward",
     onChange: updateSelectedUser
   });
-  $('#settings-set-player').dropdown('set selected', selectedPlayerID);
+  $("#settings-set-player").dropdown("set selected", selectedPlayerID);
 
-  $('#settings-submenu .item').tab();
-  $('#settings-submenu .item').click(function() {
-    $('#settings-page-content table').floatThead('reflow');
+  $("#settings-submenu .item").tab();
+  $("#settings-submenu .item").click(function() {
+    $("#settings-page-content table").floatThead("reflow");
   });
-  $('#settings-new-collection-button').click(addNewCollection);
+  $("#settings-new-collection-button").click(addNewCollection);
 
-  $('#settings-page-content table').floatThead({
+  $("#settings-page-content table").floatThead({
     scrollContainer: closestWrapper,
     autoReflow: true
   });
 
-  $('#settings-reset-focus-player').click(function() {
-    settings.set('selectedPlayerID', null);
-    $('#settings-set-player').dropdown('restore defaults');
+  $("#settings-reset-focus-player").click(function() {
+    settings.set("selectedPlayerID", null);
+    $("#settings-set-player").dropdown("restore defaults");
   });
 
   // player match threshold
-  let threshold = settings.get('playerThreshold');
+  let threshold = settings.get("playerThreshold");
   if (threshold !== 0 && !threshold) {
-    settings.set('playerThreshold', 5);
+    settings.set("playerThreshold", 5);
     threshold = 5;
   }
 
-  $('#player-menu-thresh-input input').val(threshold);
-  $('#player-menu-thresh-input button').click(setPlayerMenuThreshold);
+  $("#player-menu-thresh-input input").val(threshold);
+  $("#player-menu-thresh-input button").click(setPlayerMenuThreshold);
 
-  $('#show-app-dev-tools').click(function() {
+  $("#show-app-dev-tools").click(function() {
     remote.getCurrentWindow().toggleDevTools();
   });
 
-  $('#show-parser-dev-tools').click(function() {
+  $("#show-parser-dev-tools").click(function() {
     bgWindow.webContents.openDevTools();
   });
 
   loadCollections();
   loadCachedCollections();
 
-  $('#settings-set-cache-import-folder').click(function() {
-    browseForFolder($(this), 'Select Database Folder');
+  $("#settings-set-cache-import-folder").click(function() {
+    browseForFolder($(this), "Select Database Folder");
   });
 
-  $('#settings-new-cache-modal input').popup({
-    on: 'manual'
+  $("#settings-new-cache-modal input").popup({
+    on: "manual"
   });
 
-  $('#settings-import-external-db').click(function() {
-    $('#settings-set-cache-name').removeClass('error');
-    $('#settings-set-cache-import-folder').removeClass('error');
-    $('#settings-new-cache-modal input').popup('hide');
+  $("#settings-import-external-db").click(function() {
+    $("#settings-set-cache-name").removeClass("error");
+    $("#settings-set-cache-import-folder").removeClass("error");
+    $("#settings-new-cache-modal input").popup("hide");
 
-    $('#settings-new-cache-modal').modal({
-      closable: false,
-      onDeny: function() {
-        $('#settings-new-cache-modal input').popup('hide');
-        return true;
-      },
-      onApprove: cacheExternalDB
-    }).modal('show');
+    $("#settings-new-cache-modal")
+      .modal({
+        closable: false,
+        onDeny: function() {
+          $("#settings-new-cache-modal input").popup("hide");
+          return true;
+        },
+        onApprove: cacheExternalDB
+      })
+      .modal("show");
   });
 
   // setting popup
-  $('#settings-set-folder-options-button').popup({
-    on: 'click',
-    position: 'bottom right',
-    popup: $('#settings-replay-folder-settings-popup')
+  $("#settings-set-folder-options-button").popup({
+    on: "click",
+    position: "bottom right",
+    popup: $("#settings-replay-folder-settings-popup")
   });
 
-  $('#settings-recursive-replay').checkbox({
+  $("#settings-recursive-replay").checkbox({
     onChecked: function() {
-      settings.set('recursiveReplaySearch', true);
+      settings.set("recursiveReplaySearch", true);
     },
     onUnchecked: function() {
-      settings.set('recursiveReplaySearch', false);
+      settings.set("recursiveReplaySearch", false);
     }
   });
 
   // import sets
-  $('#settings-use-import-set').checkbox({
+  $("#settings-use-import-set").checkbox({
     onChecked: () => setImportSetUse(true),
     onUnchecked: () => setImportSetUse(false)
   });
 
-  if (settings.get('usingImportSet') === true) {
-    $('#settings-use-import-set').checkbox('check');
+  if (settings.get("usingImportSet") === true) {
+    $("#settings-use-import-set").checkbox("check");
   }
 
-  $('#settings-add-import-set').click(addImportSetFolder);
+  $("#settings-add-import-set").click(addImportSetFolder);
 
   // load existing import set (if any)
-  let importSet = settings.get('importSets');
+  let importSet = settings.get("importSets");
   if (importSet) {
     if (path in importSet) {
       localImportSet = importSet[path];
@@ -232,25 +247,24 @@ function initSettingsPage() {
     }
   }
 
-  if (settings.get('recursiveReplaySearch') === true) {
-    $('#settings-recursive-replay').checkbox('set checked');
+  if (settings.get("recursiveReplaySearch") === true) {
+    $("#settings-recursive-replay").checkbox("set checked");
   }
 
-  $('#settings-watch-dirs').checkbox({
+  $("#settings-watch-dirs").checkbox({
     onChecked: startWatcher,
     onUnchecked: stopWatcher
   });
 
   // watch directories
-  let watchDirs = settings.get('watchDirs');
+  let watchDirs = settings.get("watchDirs");
   if (watchDirs) {
     if (path in watchDirs) {
       if (watchDirs[path] === true) {
-        $('#settings-watch-dirs').checkbox('check');
+        $("#settings-watch-dirs").checkbox("check");
       }
     }
-  }
-  else {
+  } else {
     if (replayPath) {
       // load the directory
       startReplayScan();
@@ -259,94 +273,107 @@ function initSettingsPage() {
 }
 
 function showSettingsPage() {
-  $('#settings-page-content table').floatThead('reflow');
+  $("#settings-page-content table").floatThead("reflow");
 }
 
 function setReplayFolder() {
-  dialog.showOpenDialog({
-    defaultPath: settings.get('replayPath'),
-    title: 'Select Replay Folder',
-    properties: ["openDirectory", "createDirectory"]
-  }, function(files) {
-    if (files) {
-      // pick the first, should only be 1 dir
-      let path = files[0];
-      settings.set('replayPath', path);
-      $('#settings-set-replay-folder input').val(path);
+  dialog.showOpenDialog(
+    {
+      defaultPath: settings.get("replayPath"),
+      title: "Select Replay Folder",
+      properties: ["openDirectory", "createDirectory"]
+    },
+    function(files) {
+      if (files) {
+        // pick the first, should only be 1 dir
+        let path = files[0];
+        settings.set("replayPath", path);
+        $("#settings-set-replay-folder input").val(path);
 
-      startReplayScan();
+        startReplayScan();
+      }
     }
-  });
+  );
 }
 
 // this just sets the text for an element
 function browseForFolder(elem, title) {
-  dialog.showOpenDialog({
-    defaultPath: settings.get('replayPath'),
-    title: title,
-    properties: ["openDirectory", "createDirectory"]
-  }, function(files) {
-    if (files) {
-      // pick the first, should only be 1 dir
-      let path = files[0];
-      elem.find('input').val(path);
+  dialog.showOpenDialog(
+    {
+      defaultPath: settings.get("replayPath"),
+      title: title,
+      properties: ["openDirectory", "createDirectory"]
+    },
+    function(files) {
+      if (files) {
+        // pick the first, should only be 1 dir
+        let path = files[0];
+        elem.find("input").val(path);
+      }
     }
-  });
+  );
 }
 
 function setDBFolder() {
-  dialog.showOpenDialog({
-    defaultPath: settings.get('dbPath'),
-    title: 'Set Database Folder',
-    properties: ['openDirectory', 'createDirectory']
-  }, function(files) {
-    if (files) {
-      // 1 dir
-      let path = files[0];
-      settings.set('dbPath', path);
-      app.relaunch();
-      app.quit();
+  dialog.showOpenDialog(
+    {
+      defaultPath: settings.get("dbPath"),
+      title: "Set Database Folder",
+      properties: ["openDirectory", "createDirectory"]
+    },
+    function(files) {
+      if (files) {
+        // 1 dir
+        let path = files[0];
+        settings.set("dbPath", path);
+        app.relaunch();
+        app.quit();
+      }
     }
-  });
+  );
 }
 
 function resetDBFolder() {
-  $('#confirm-db-reset-modal').modal({
-    onApprove: function() {
-      settings.set('dbPath', app.getPath('userData'));
-      app.relaunch();
-      app.quit();
-    }
-  }).modal('show');
+  $("#confirm-db-reset-modal")
+    .modal({
+      onApprove: function() {
+        settings.set("dbPath", app.getPath("userData"));
+        app.relaunch();
+        app.quit();
+      }
+    })
+    .modal("show");
 }
 
 function startReplayScan() {
   // lists the files in the folder
   console.log("Listing replay files...");
-  let currentDate = $('#replay-file-start').datepicker('getDate');
-  settings.set('lastReplayDate', currentDate);
+  let currentDate = $("#replay-file-start").datepicker("getDate");
+  settings.set("lastReplayDate", currentDate);
 
-  $('#replay-file-list tbody').html('');
+  $("#replay-file-list tbody").html("");
 
   let replays = [];
   if (usingImportSet) {
     // import from each path, assign collections to each thing
     for (let dir in localImportSet) {
-      replays = replays.concat(addReplaysToList(localImportSet[dir].path, localImportSet[dir].collections));
+      replays = replays.concat(
+        addReplaysToList(
+          localImportSet[dir].path,
+          localImportSet[dir].collections
+        )
+      );
     }
-  }
-  else {
-    let path = settings.get('replayPath');
+  } else {
+    let path = settings.get("replayPath");
     replays = addReplaysToList(path);
   }
 
   // sort by date
   replays.sort(function(a, b) {
-    if (a.date === b.date)
-      return 0;
+    if (a.date === b.date) return 0;
 
-    if (a.date < b.date)
-      return -1;
+    if (a.date < b.date) return -1;
 
     return 1;
   });
@@ -354,49 +381,49 @@ function startReplayScan() {
   let count = 0;
   for (let r in replays) {
     replays[r].id = count;
-    $('#replay-file-list').append(settingsRowTemplate(replays[r]));
+    $("#replay-file-list").append(settingsRowTemplate(replays[r]));
     replays[r].processed = false;
     count += 1;
   }
   listedReplays = replays;
 
-  console.log('Found ' + count + ' replays ')
+  console.log("Found " + count + " replays ");
 }
 
 function addReplaysToList(path, collections) {
   try {
-    let currentDate = $('#replay-file-start').datepicker('getDate');
+    let currentDate = $("#replay-file-start").datepicker("getDate");
     let files = fs.readdirSync(path);
     let replays = [];
     for (let file of files) {
-      let stats = fs.statSync(path + '/' + file);
+      let stats = fs.statSync(path + "/" + file);
 
       if (new Date(stats.birthtime) < currentDate) {
         continue;
       }
 
       let lcstr = file.toLowerCase();
-      if (lcstr.endsWith('.stormreplay')) {
+      if (lcstr.endsWith(".stormreplay")) {
         let context = { filename: file };
         context.status = "";
         context.date = new Date(stats.birthtime);
-        context.fdate = context.date.toLocaleString('en-us');
+        context.fdate = context.date.toLocaleString("en-us");
         context.folder = path.match(/([^\/\\]*)\/*$/)[1];
 
         // only used for import sets, safe to leave undefined otherwise
         context.collections = collections;
 
-        context.path = path + '/' + file;
+        context.path = path + "/" + file;
         replays.push(context);
-      }
-      else if (stats.isDirectory()) {
-        replays = replays.concat(addReplaysToList(path + '/' + file, collections));
+      } else if (stats.isDirectory()) {
+        replays = replays.concat(
+          addReplaysToList(path + "/" + file, collections)
+        );
       }
     }
 
     return replays;
-  }
-  catch (err) {
+  } catch (err) {
     console.log(err);
     return [];
   }
@@ -412,7 +439,7 @@ function parseReplays() {
   // - the main thread will then take the replay data, insert it into the database (if valid)
   //   and then, if there are still things in the queue, repeat
   replayQueue = [];
-  let i = 0
+  let i = 0;
   for (let r in listedReplays) {
     let q = listedReplays[r];
     if (!q.processed) {
@@ -431,74 +458,86 @@ function parseReplays() {
 
 function disableParsingUI() {
   parserRunning = true;
-  $('#start-process-button').addClass('loading disabled');
-  $('#rescan-replays-button').addClass('disabled');
-  $('#settings-hots-api-button').checkbox('disable');
-  $('#settings-hots-logs-button').checkbox('disable');
-  $('#settings-replay-file-start').addClass('disabled');
-  $('#settings-collection-import').addClass('disabled');
-  $('#settings-set-db-folder .button').addClass('disabled');
-  $('#settings-set-replay-folder .button').addClass('disabled');
-  $('#delete-db-button').addClass('disabled');
-  $('#settings-import-set .ui.dropdown').addClass('disabled');
-  $('#settings-import-set .button').addClass('disabled');
+  $("#start-process-button").addClass("loading disabled");
+  $("#rescan-replays-button").addClass("disabled");
+  $("#settings-hots-api-button").checkbox("disable");
+  $("#settings-hots-logs-button").checkbox("disable");
+  $("#settings-replay-file-start").addClass("disabled");
+  $("#settings-collection-import").addClass("disabled");
+  $("#settings-set-db-folder .button").addClass("disabled");
+  $("#settings-set-replay-folder .button").addClass("disabled");
+  $("#delete-db-button").addClass("disabled");
+  $("#settings-import-set .ui.dropdown").addClass("disabled");
+  $("#settings-import-set .button").addClass("disabled");
 }
 
 function enableParsingUI() {
   globalDBUpdate();
   parserRunning = false;
 
-  $('#start-process-button').removeClass('loading disabled');
-  $('#rescan-replays-button').removeClass('disabled');
-  $('#settings-hots-api-button').checkbox('enable');
-  $('#settings-hots-logs-button').checkbox('enable');
-  $('#settings-replay-file-start').removeClass('disabled');
+  $("#start-process-button").removeClass("loading disabled");
+  $("#rescan-replays-button").removeClass("disabled");
+  $("#settings-hots-api-button").checkbox("enable");
+  $("#settings-hots-logs-button").checkbox("enable");
+  $("#settings-replay-file-start").removeClass("disabled");
 
   if (!usingImportSet) {
-    $('#settings-collection-import').removeClass('disabled');
+    $("#settings-collection-import").removeClass("disabled");
   }
 
-  $('#settings-set-db-folder .button').removeClass('disabled');
-  $('#settings-set-replay-folder .button').removeClass('disabled');
-  $('#delete-db-button').removeClass('disabled');
-  $('#settings-import-set .ui.dropdown').removeClass('disabled');
-  $('#settings-import-set .button').removeClass('disabled');
+  $("#settings-set-db-folder .button").removeClass("disabled");
+  $("#settings-set-replay-folder .button").removeClass("disabled");
+  $("#delete-db-button").removeClass("disabled");
+  $("#settings-import-set .ui.dropdown").removeClass("disabled");
+  $("#settings-import-set .button").removeClass("disabled");
 }
 
 function parseReplaysAsync(replay) {
   // attempts to spawn a child process, parse the replays in there,
   // then hand back to the main thread to actually insert into the database
-  $('tr[replay-id="' + replay.id + '"] .replay-status').text('Processing...');
+  $('tr[replay-id="' + replay.id + '"] .replay-status').text("Processing...");
 
   DB.checkDuplicate(replay.path, function(result) {
     if (importDuplicates === true || result === false) {
       // upload maybe
-      if (settings.get('uploadToHotsAPI') === true) {
+      if (settings.get("uploadToHotsAPI") === true) {
         uploadReplayToHotsAPI(replay.id, replay.path);
       }
 
-      bgWindow.webContents.send('parseReplay', replay.path, replay.idx, BrowserWindow.getAllWindows()[0].id);
+      bgWindow.webContents.send(
+        "parseReplay",
+        replay.path,
+        replay.idx,
+        BrowserWindow.getAllWindows()[0].id
+      );
       return;
-    }
-    else if (result === 'map') {
-      console.log(replay.id + ' unsupported map');
+    } else if (result === "map") {
+      console.log(replay.id + " unsupported map");
       listedReplays[replay.idx].duplicate = false;
-      $('tr[replay-id="' + replay.id + '"] .replay-status').text('Unsupported Map').addClass('negative');
-    }
-    else if (result === true) {
-      console.log(replay.id + ' is a duplicate');
+      $('tr[replay-id="' + replay.id + '"] .replay-status')
+        .text("Unsupported Map")
+        .addClass("negative");
+    } else if (result === true) {
+      console.log(replay.id + " is a duplicate");
       listedReplays[replay.idx].duplicate = true;
-      $('tr[replay-id="' + replay.id + '"] .replay-status').text('Duplicate').addClass('warning');
-    }
-    else {
-      console.log(replay.id + ' Parser error');
+      $('tr[replay-id="' + replay.id + '"] .replay-status')
+        .text("Duplicate")
+        .addClass("warning");
+    } else {
+      console.log(replay.id + " Parser error");
 
       // this message is specifically for when a protocol doesn't exist
-      if (result.message === "Cannot read property 'decodeReplayHeader' of undefined") {
-        $('tr[replay-id="' + replay.id + '"] .replay-status').text('Error: Missing Replay Protocol').addClass('negative');
-      }
-      else {
-        $('tr[replay-id="' + replay.id + '"] .replay-status').text('Error: Internal Exception').addClass('negative');
+      if (
+        result.message ===
+        "Cannot read property 'decodeReplayHeader' of undefined"
+      ) {
+        $('tr[replay-id="' + replay.id + '"] .replay-status')
+          .text("Error: Missing Replay Protocol")
+          .addClass("negative");
+      } else {
+        $('tr[replay-id="' + replay.id + '"] .replay-status')
+          .text("Error: Internal Exception")
+          .addClass("negative");
       }
     }
 
@@ -507,34 +546,34 @@ function parseReplaysAsync(replay) {
 
     if (replayQueue.length > 0) {
       parseReplaysAsync(replayQueue.shift());
-    }
-    else {
+    } else {
       enableParsingUI();
     }
   });
 }
 
 function loadReplay(data) {
-  console.log('Replay ' + data.idx + ' returned with status ' + data.status);
+  console.log("Replay " + data.idx + " returned with status " + data.status);
   if (data.status === Parser.ReplayStatus.OK) {
     let collection = null;
 
-    if (!usingImportSet && $('#settings-collection-import').dropdown('get value') !== '') {
-      collection = [$('#settings-collection-import').dropdown('get value')];
-    }
-    else if (usingImportSet) {
+    if (
+      !usingImportSet &&
+      $("#settings-collection-import").dropdown("get value") !== ""
+    ) {
+      collection = [$("#settings-collection-import").dropdown("get value")];
+    } else if (usingImportSet) {
       collection = listedReplays[data.idx].collections;
     }
 
     DB.insertReplay(data.match, data.players, collection);
-    $('tr[replay-id="' + listedReplays[data.idx].id + '"] .replay-status').
-      text('Success').
-      addClass('positive');
-  }
-  else {
-    $('tr[replay-id="' + listedReplays[data.idx].id + '"] .replay-status').
-      text('Error: ' + Parser.StatusString[data.status]).
-      addClass('negative');
+    $('tr[replay-id="' + listedReplays[data.idx].id + '"] .replay-status')
+      .text("Success")
+      .addClass("positive");
+  } else {
+    $('tr[replay-id="' + listedReplays[data.idx].id + '"] .replay-status')
+      .text("Error: " + Parser.StatusString[data.status])
+      .addClass("negative");
   }
 
   listedReplays[data.idx].processed = true;
@@ -547,34 +586,37 @@ function loadReplay(data) {
 
   if (replayQueue.length > 0) {
     parseReplaysAsync(replayQueue.shift());
-  }
-  else {
+  } else {
     enableParsingUI();
   }
 }
 
 function uploadReplayToHotsAPI(id, path) {
-  $('tr[replay-id="' + id + '"] .upload-status').text('Uploading...');
-  let requestUrl = 'http://hotsapi.net/api/v1/replays?uploadToHotslogs=' + (settings.get('sendCopyToHotsLogs') === true ? 'true' : 'false')
+  $('tr[replay-id="' + id + '"] .upload-status').text("Uploading...");
+  let requestUrl =
+    "http://hotsapi.net/api/v1/replays?uploadToHotslogs=" +
+    (settings.get("sendCopyToHotsLogs") === true ? "true" : "false");
 
   let form = new FormData();
-  form.append('file', fs.createReadStream(path));
-  form.append('uploadToHotslogs', settings.get('sendCopyToHotsLogs') === true ? 'true' : 'false');
+  form.append("file", fs.createReadStream(path));
+  form.append(
+    "uploadToHotslogs",
+    settings.get("sendCopyToHotsLogs") === true ? "true" : "false"
+  );
 
   form.submit(requestUrl, function(err, res) {
-    let body = '';
-    res.on('readable', function() {
+    let body = "";
+    res.on("readable", function() {
       body += res.read();
     });
-    res.on('end', function() {
+    res.on("end", function() {
       let resp = JSON.parse(body);
       $('tr[replay-id="' + id + '"] .upload-status').text(resp.status);
 
-      if (resp.status === 'Success') {
-        $('tr[replay-id="' + id + '"] .upload-status').addClass('positive');
-      }
-      else {
-        $('tr[replay-id="' + id + '"] .upload-status').addClass('warning');
+      if (resp.status === "Success") {
+        $('tr[replay-id="' + id + '"] .upload-status').addClass("positive");
+      } else {
+        $('tr[replay-id="' + id + '"] .upload-status').addClass("warning");
       }
     });
   });
@@ -587,181 +629,213 @@ function stopParse() {
 }
 
 function updateLastDate(date) {
-  settings.set('lastReplayDate', date);
-  $('#replay-file-start').datepicker('setDate', date);
+  settings.set("lastReplayDate", date);
+  $("#replay-file-start").datepicker("setDate", date);
 }
 
 function updateSelectedUser(value, text, $item) {
-  settings.set('selectedPlayerID', value);
+  settings.set("selectedPlayerID", value);
 }
 
 function addNewCollection() {
   // again i'm shamelessly copying things from other parts of the codebase
-  $('#team-text-input .header').text('Add New Collection')
-  $('#team-text-input .input .label').text('Collection Name');
-  $('#team-text-input input').val('');
+  $("#team-text-input .header").text("Add New Collection");
+  $("#team-text-input .input .label").text("Collection Name");
+  $("#team-text-input input").val("");
 
-  $('#team-text-input').modal({
-    onApprove: function() {
-      let name = $('#team-text-input input').val();
-      DB.addCollection(name, function() {
-        updateCollectionMenu();
-        loadCollections();
-      });
-    }
-  }).
-  modal('show');
+  $("#team-text-input")
+    .modal({
+      onApprove: function() {
+        let name = $("#team-text-input input").val();
+        DB.addCollection(name, function() {
+          updateCollectionMenu();
+          loadCollections();
+        });
+      }
+    })
+    .modal("show");
 }
 
 function loadCollections() {
   DB.getCollections(function(err, collections) {
-    $('#collection-list tbody').html('');
+    $("#collection-list tbody").html("");
     for (let c in collections) {
-      $('#collection-list tbody').append(collectionRowTemplate(collections[c]));
+      $("#collection-list tbody").append(collectionRowTemplate(collections[c]));
     }
 
     // bindings
-    $('#collection-list .button').click(function() {
-      handleCollectionAction($(this).attr('collection-id'), $(this).attr('collection-name'), $(this).attr('action'));
+    $("#collection-list .button").click(function() {
+      handleCollectionAction(
+        $(this).attr("collection-id"),
+        $(this).attr("collection-name"),
+        $(this).attr("action")
+      );
     });
   });
 }
 
 function loadCachedCollections() {
   DB.getExternalCacheCollections(function(err, collections) {
-    $('#collection-cache-list tbody').html('');
+    $("#collection-cache-list tbody").html("");
     let combined = {};
     for (let c of collections) {
       if (!(c.dbName in combined)) {
-        combined[c.dbName] = { name: c.dbName, count: 0  };
+        combined[c.dbName] = { name: c.dbName, count: 0 };
       }
 
       combined[c.dbName].count += 1;
     }
 
     for (let c in combined) {
-      $('#collection-cache-list tbody').append(collectionCacheRowTemplate(combined[c]));
+      $("#collection-cache-list tbody").append(
+        collectionCacheRowTemplate(combined[c])
+      );
     }
 
     // bind
-    $('#collection-cache-list .button').click(function() {
-      handleCacheAction($(this).attr('collection-name'), $(this).attr('action'));
-    })
-  })
+    $("#collection-cache-list .button").click(function() {
+      handleCacheAction(
+        $(this).attr("collection-name"),
+        $(this).attr("action")
+      );
+    });
+  });
 }
 
 function handleCollectionAction(id, name, action) {
-  if (action === 'delete') {
-    $('#team-confirm-action-user .header').text('Delete Collection ' + name);
-    $('#team-confirm-action-user .action').text('delete ' + name);
+  if (action === "delete") {
+    $("#team-confirm-action-user .header").text("Delete Collection " + name);
+    $("#team-confirm-action-user .action").text("delete " + name);
 
-    $('#team-confirm-action-user').modal({
-      onApprove: function() {
-        DB.deleteCollection(id, function() {
-          updateCollectionMenu();
-          loadCollections();
-        });
-      }
-    }).
-    modal('show');
-  }
-  else if (action === 'rename') {
-    $('#team-text-input .header').text('Rename Collection ' + name)
-    $('#team-text-input .input .label').text('Collection Name');
-    $('#team-text-input input').val('');
-    $('#team-text-input .actions .approve').text('Rename');
+    $("#team-confirm-action-user")
+      .modal({
+        onApprove: function() {
+          DB.deleteCollection(id, function() {
+            updateCollectionMenu();
+            loadCollections();
+          });
+        }
+      })
+      .modal("show");
+  } else if (action === "rename") {
+    $("#team-text-input .header").text("Rename Collection " + name);
+    $("#team-text-input .input .label").text("Collection Name");
+    $("#team-text-input input").val("");
+    $("#team-text-input .actions .approve").text("Rename");
 
-    $('#team-text-input').modal({
-      onApprove: function() {
-        let name = $('#team-text-input input').val();
-        DB.renameCollection(id, name, function() {
-          // uh changing back to defaults here
-          $('#team-text-input .actions .approve').text('Add');
-          updateCollectionMenu();
-          loadCollections();
-        });
-      }
-    }).
-    modal('show');
+    $("#team-text-input")
+      .modal({
+        onApprove: function() {
+          let name = $("#team-text-input input").val();
+          DB.renameCollection(id, name, function() {
+            // uh changing back to defaults here
+            $("#team-text-input .actions .approve").text("Add");
+            updateCollectionMenu();
+            loadCollections();
+          });
+        }
+      })
+      .modal("show");
   }
 }
 
 function setPlayerMenuThreshold() {
-  settings.set('playerThreshold', parseInt($('#player-menu-thresh-input input').val()));
+  settings.set(
+    "playerThreshold",
+    parseInt($("#player-menu-thresh-input input").val())
+  );
   showMessage(
-    'Player Menu Result Limit Updated', 'Menus will now show ' + settings.get('playerThreshold') + ' players maximum when searching.',
-    { class: 'positive' }
+    "Player Menu Result Limit Updated",
+    "Menus will now show " +
+      settings.get("playerThreshold") +
+      " players maximum when searching.",
+    { class: "positive" }
   );
 }
 
 function cacheExternalDB() {
-  let path = $('#settings-set-cache-import-folder input').val();
-  let name = $('#settings-set-cache-name input').val();
+  let path = $("#settings-set-cache-import-folder input").val();
+  let name = $("#settings-set-cache-name input").val();
 
   // little jank but the view is sync'd with the model...
-  if (name === '' || $('td[collection-name="' + name + '"]').length > 0) {
-    $('#settings-set-cache-name').addClass('error');
-    $('#settings-set-cache-name input').popup('show');
+  if (name === "" || $('td[collection-name="' + name + '"]').length > 0) {
+    $("#settings-set-cache-name").addClass("error");
+    $("#settings-set-cache-name input").popup("show");
     return false;
   }
 
-  if (!fs.existsSync(path + '/hero.db')) {
-    $('#settings-set-cache-import-folder').addClass('error');
-    $('#settings-set-cache-import-folder input').popup('show');
+  if (!fs.existsSync(path + "/hero.db")) {
+    $("#settings-set-cache-import-folder").addClass("error");
+    $("#settings-set-cache-import-folder input").popup("show");
     return false;
   }
 
-  showMessage('Caching External Database ' + name, 'Reading from ' + path);
-  $('#settings-import-external-db').addClass('disabled');
+  showMessage("Caching External Database " + name, "Reading from " + path);
+  $("#settings-import-external-db").addClass("disabled");
   DB.cacheExternalDatabase(path, name, function() {
-    showMessage('External Database Load Complete', name + ': ' + path, { class: 'positive' });
-    $('#settings-import-external-db').removeClass('disabled');
+    showMessage("External Database Load Complete", name + ": " + path, {
+      class: "positive"
+    });
+    $("#settings-import-external-db").removeClass("disabled");
     loadCachedCollections();
     populateStatCollectionMenus();
   });
 
-  $('#settings-new-cache-modal input').popup('hide');
+  $("#settings-new-cache-modal input").popup("hide");
   return true;
 }
 
 function handleCacheAction(dbName, action) {
-  if (action === 'delete') {
-    $('#settings-confirm-cache-delete-modal').modal({
-      onApprove: function() {
-        DB.deleteExternalCache(dbName, function() {
-          loadCachedCollections();
-          populateStatCollectionMenus();
-        });
-      }
-    }).
-    modal('show');
-  }
-  else if (action === 'update') {
-    dialog.showOpenDialog({
-      defaultPath: settings.get('replayPath'),
-      title: 'Select Database Location',
-      properties: ["openDirectory", "createDirectory"]
-    }, function(files) {
-      if (files) {
-        if (!fs.existsSync(files[0] + '/hero.db')) {
-          showMessage('Unable to Update Cache', 'Selected folder ' + files[0] + ' has no valid database.');
-
-          return;
-        }
-
-        // update is basically just delete then import
-        DB.deleteExternalCache(dbName, function() {
-          showMessage('Updating External Database ' + dbName, 'Reading from ' + files[0]);
-          $('#settings-import-external-db').addClass('disabled');
-          DB.cacheExternalDatabase(files[0], dbName, function() {
-            showMessage('External Database Update Complete', dbName + ': ' + files[0], { class: 'positive' });
-            $('#settings-import-external-db').removeClass('disabled');
+  if (action === "delete") {
+    $("#settings-confirm-cache-delete-modal")
+      .modal({
+        onApprove: function() {
+          DB.deleteExternalCache(dbName, function() {
             loadCachedCollections();
             populateStatCollectionMenus();
-          })
-        })
+          });
+        }
+      })
+      .modal("show");
+  } else if (action === "update") {
+    dialog.showOpenDialog(
+      {
+        defaultPath: settings.get("replayPath"),
+        title: "Select Database Location",
+        properties: ["openDirectory", "createDirectory"]
+      },
+      function(files) {
+        if (files) {
+          if (!fs.existsSync(files[0] + "/hero.db")) {
+            showMessage(
+              "Unable to Update Cache",
+              "Selected folder " + files[0] + " has no valid database."
+            );
+
+            return;
+          }
+
+          // update is basically just delete then import
+          DB.deleteExternalCache(dbName, function() {
+            showMessage(
+              "Updating External Database " + dbName,
+              "Reading from " + files[0]
+            );
+            $("#settings-import-external-db").addClass("disabled");
+            DB.cacheExternalDatabase(files[0], dbName, function() {
+              showMessage(
+                "External Database Update Complete",
+                dbName + ": " + files[0],
+                { class: "positive" }
+              );
+              $("#settings-import-external-db").removeClass("disabled");
+              loadCachedCollections();
+              populateStatCollectionMenus();
+            });
+          });
+        }
       }
-    });
+    );
   }
 }
 
@@ -769,141 +843,162 @@ function setImportSetUse(state) {
   usingImportSet = state;
 
   if (usingImportSet) {
-    $('#settings-set-replay-folder input').val('[Using Import Set]');
-    $('#settings-collection-import').addClass('disabled');
-  }
-  else {
-    $('#settings-set-replay-folder input').val(settings.get('replayPath'));
-    $('#settings-collection-import').removeClass('disabled');
+    $("#settings-set-replay-folder input").val("[Using Import Set]");
+    $("#settings-collection-import").addClass("disabled");
+  } else {
+    $("#settings-set-replay-folder input").val(settings.get("replayPath"));
+    $("#settings-collection-import").removeClass("disabled");
   }
 
-  settings.set('usingImportSet', state);
+  settings.set("usingImportSet", state);
   startReplayScan();
 }
 
 function addImportSetFolder() {
-  dialog.showOpenDialog({
-    defaultPath: settings.get('replayPath'),
-    title: 'Select Replay Folder',
-    properties: ["openDirectory", "createDirectory"]
-  }, function(files) {
-    if (files) {
-      // pick the first, should only be 1 dir
-      let path = files[0];
-      if (path in localImportSet) {
-        showMessage('Failed to Add Folder to Import Set', 'Folder is already in the import set', { class: 'negative' })
-      }
-      else {
-        localImportSet[path] = {
-          path: path,
-          collections: []
-        }
+  dialog.showOpenDialog(
+    {
+      defaultPath: settings.get("replayPath"),
+      title: "Select Replay Folder",
+      properties: ["openDirectory", "createDirectory"]
+    },
+    function(files) {
+      if (files) {
+        // pick the first, should only be 1 dir
+        let path = files[0];
+        if (path in localImportSet) {
+          showMessage(
+            "Failed to Add Folder to Import Set",
+            "Folder is already in the import set",
+            { class: "negative" }
+          );
+        } else {
+          localImportSet[path] = {
+            path: path,
+            collections: []
+          };
 
-        insertImportSetRow(localImportSet[path]);
+          insertImportSetRow(localImportSet[path]);
+        }
       }
     }
-  });
+  );
 }
 
 function insertImportSetRow(data) {
-  let elem = '<tr path="' + data.path + '">'
-  elem += '<td>' + data.path + '</td>';
+  let elem = '<tr path="' + data.path + '">';
+  elem += "<td>" + data.path + "</td>";
 
   // collection menu
-  elem += '<td><div path="' + data.path + '" class="ui fluid search multiple selection dropdown collection-menu">';
-  elem += '<i class="dropdown icon"></i><span class="text">[No Collection]</span><div class="menu"></div></div></td>';
+  elem +=
+    '<td><div path="' +
+    data.path +
+    '" class="ui fluid search multiple selection dropdown collection-menu">';
+  elem +=
+    '<i class="dropdown icon"></i><span class="text">[No Collection]</span><div class="menu"></div></div></td>';
 
   // actions
-  elem += '<td><div path="' + data.path + '" class="ui red button">Delete</div></td>';
-  elem += '</tr>';
+  elem +=
+    '<td><div path="' + data.path + '" class="ui red button">Delete</div></td>';
+  elem += "</tr>";
 
   elem = $(elem);
-  $('#settings-import-set tbody').append(elem);
+  $("#settings-import-set tbody").append(elem);
 
   // bindings
   let path = data.path;
-  elem.find('.collection-menu.dropdown').dropdown({
+  elem.find(".collection-menu.dropdown").dropdown({
     onChange: function(value, text, $elem) {
-      localImportSet[path].collections = value.split(',');
+      localImportSet[path].collections = value.split(",");
       saveLocalImportSet();
     }
   });
 
-  elem.find('.red.button').click(function() {
+  elem.find(".red.button").click(function() {
     deleteImportSetFolder(elem);
   });
 
   updateCollectionMenu(function() {
-    elem.find('.dropdown').dropdown('set exactly', data.collections);
+    elem.find(".dropdown").dropdown("set exactly", data.collections);
   });
 
   saveLocalImportSet();
 }
 
 function deleteImportSetFolder(elem) {
-  let path = $(elem).attr('path');
+  let path = $(elem).attr("path");
   delete localImportSet[path];
   elem.remove();
   saveLocalImportSet();
 }
 
 function saveLocalImportSet() {
-  let globalSet = settings.get('importSets');
-  let dbPath = settings.get('dbPath');
+  let globalSet = settings.get("importSets");
+  let dbPath = settings.get("dbPath");
 
   if (!globalSet) {
     globalSet = { dbPath: localImportSet };
-  }
-  else {
+  } else {
     globalSet[dbPath] = localImportSet;
   }
 
-  settings.set('importSets', globalSet);
+  settings.set("importSets", globalSet);
 }
 
 function startWatcher() {
-  let watchDirs = settings.get('watchDirs');
-  let dbPath = settings.get('dbPath');
-  let recursive = settings.get('recursiveReplaySearch');
-  showMessage('Started watching replay folder', 'New files will be automatically imported');
+  let watchDirs = settings.get("watchDirs");
+  let dbPath = settings.get("dbPath");
+  let recursive = settings.get("recursiveReplaySearch");
+  showMessage(
+    "Started watching replay folder",
+    "New files will be automatically imported"
+  );
 
   if (!watchDirs) {
     watchDirs = {};
   }
 
   watchDirs[dbPath] = true;
-  settings.set('watchDirs', watchDirs);
+  settings.set("watchDirs", watchDirs);
 
-  if (watcher)
-    watcher.close();
+  if (watcher) watcher.close();
 
   if (usingImportSet) {
     // get all the import set paths
     let dirs = [];
-    let importSet = settings.get('importSets')[dbPath];
+    let importSet = settings.get("importSets")[dbPath];
     for (let dir in importSet) {
       dirs.push(importSet[dir].path);
     }
 
-    watcher = watch(dirs, { recursive, filter: /\.stormreplay$/i, delay: 1000 }, liveAddReplay);
-  }
-  else {
+    watcher = watch(
+      dirs,
+      { recursive, filter: /\.stormreplay$/i, delay: 1000 },
+      liveAddReplay
+    );
+  } else {
     // just the one
-    watcher = watch(settings.get('replayPath'), { recursive, filter: /\.stormreplay$/i, delay: 1000 }, liveAddReplay);
+    watcher = watch(
+      settings.get("replayPath"),
+      { recursive, filter: /\.stormreplay$/i, delay: 1000 },
+      liveAddReplay
+    );
   }
 }
 
 function stopWatcher() {
-  let watchDirs = settings.get('watchDirs');
-  let dbPath = settings.get('dbPath');
-  showMessage('Stopped watching replay folder', 'New files will not be automatically imported');
+  let watchDirs = settings.get("watchDirs");
+  let dbPath = settings.get("dbPath");
+  showMessage(
+    "Stopped watching replay folder",
+    "New files will not be automatically imported"
+  );
 
   if (!watchDirs) {
     watchDirs = {};
   }
 
   watchDirs[dbPath] = false;
-  settings.set('watchDirs', watchDirs);
+  settings.set("watchDirs", watchDirs);
 
   if (watcher) {
     watcher.close();
@@ -911,16 +1006,16 @@ function stopWatcher() {
 }
 
 function liveAddReplay(evt, name) {
-  if (evt === 'update') {
+  if (evt === "update") {
     // filtered out non-stormreplay files
     let stats = fs.statSync(name);
 
-    let prefix = name.match(/(.*)[\/\\]/)[1]||'';
+    let prefix = name.match(/(.*)[\/\\]/)[1] || "";
 
-    let context = { };
+    let context = {};
     context.status = "";
     context.date = new Date(stats.birthtime);
-    context.fdate = context.date.toLocaleString('en-us');
+    context.fdate = context.date.toLocaleString("en-us");
     context.folder = prefix.match(/([^\/\\]*)\/*$/)[1];
     context.filename = name.match(/([^\/\\]*)\/*$/)[1];
 
@@ -932,7 +1027,7 @@ function liveAddReplay(evt, name) {
     context.path = name;
 
     context.id = listedReplays.length;
-    $('#replay-file-list').append(settingsRowTemplate(context));
+    $("#replay-file-list").append(settingsRowTemplate(context));
     context.processed = false;
     listedReplays.push(context);
 

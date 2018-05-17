@@ -25,8 +25,8 @@ function summarizeHeroData(docs) {
   playerDetailStats.taunts = {
     bsteps: { count: 0, duration: 0, takedowns: 0, deaths: 0 },
     dances: { count: 0, takedowns: 0, deaths: 0 },
-    sprays: { count: 0, takedowns: 0, deaths: 0},
-    taunts: { count: 0, takedowns: 0, deaths: 0},
+    sprays: { count: 0, takedowns: 0, deaths: 0 },
+    taunts: { count: 0, takedowns: 0, deaths: 0 },
     voiceLines: { count: 0, takedowns: 0, deaths: 0 }
   };
 
@@ -46,7 +46,7 @@ function summarizeHeroData(docs) {
         games: 0,
         wins: 0,
         totalAwards: 0,
-        stats: { timeDeadPct : 0 },
+        stats: { timeDeadPct: 0 },
         awards: {},
         totalTime: 0,
         votes: 0,
@@ -54,7 +54,7 @@ function summarizeHeroData(docs) {
       };
       playerDetailStats.max[match.hero] = { timeDeadPct: 0 };
       playerDetailStats.min[match.hero] = { timeDeadPct: 100 };
-      medianTemp[match.hero] = { timeDeadPct: []};
+      medianTemp[match.hero] = { timeDeadPct: [] };
     }
 
     playerDetailStats.heroes[match.hero].totalTime += match.length;
@@ -71,8 +71,7 @@ function summarizeHeroData(docs) {
       let statName = statList[s];
 
       // older replays may have missing stats
-      if (!(statName in match.gameStats))
-        continue;
+      if (!(statName in match.gameStats)) continue;
 
       if (!(statName in playerDetailStats.heroes[match.hero].stats)) {
         playerDetailStats.heroes[match.hero].stats[statName] = 0;
@@ -82,24 +81,28 @@ function summarizeHeroData(docs) {
       }
 
       // booooo blackheart's
-      if (statName === 'BlackheartDoubloonsCollected') {
+      if (statName === "BlackheartDoubloonsCollected") {
         // sometimes the replay freaks out and returns a huge integer. Set that to 0 if it happens
-        if (match.gameStats[statName] > 200)
-          match.gameStats[statName] = 0;
+        if (match.gameStats[statName] > 200) match.gameStats[statName] = 0;
       }
 
-      playerDetailStats.heroes[match.hero].stats[statName] += match.gameStats[statName];
+      playerDetailStats.heroes[match.hero].stats[statName] +=
+        match.gameStats[statName];
       medianTemp[match.hero][statName].push(match.gameStats[statName]);
 
-      if (match.gameStats[statName] > playerDetailStats.max[match.hero][statName])
+      if (
+        match.gameStats[statName] > playerDetailStats.max[match.hero][statName]
+      )
         playerDetailStats.max[match.hero][statName] = match.gameStats[statName];
 
-      if (match.gameStats[statName] < playerDetailStats.min[match.hero][statName])
+      if (
+        match.gameStats[statName] < playerDetailStats.min[match.hero][statName]
+      )
         playerDetailStats.min[match.hero][statName] = match.gameStats[statName];
     }
 
     // some extra stats that aren't in the list
-    let tdp = match.gameStats.TimeSpentDead / match.length
+    let tdp = match.gameStats.TimeSpentDead / match.length;
     playerDetailStats.heroes[match.hero].stats.timeDeadPct += tdp;
     medianTemp[match.hero].timeDeadPct.push(tdp);
 
@@ -110,13 +113,16 @@ function summarizeHeroData(docs) {
       playerDetailStats.min[match.hero].timeDeadPct = tdp;
 
     //playerDetailStats.heroes[match.hero].stats.highestStreak = Math.max(match.gameStats.HighestKillStreak, playerDetailStats.heroes[match.hero].stats.highestStreak);
-    playerDetailStats.highestStreak = Math.max(playerDetailStats.max[match.hero].HighestKillStreak, match.gameStats.HighestKillStreak);
+    playerDetailStats.highestStreak = Math.max(
+      playerDetailStats.max[match.hero].HighestKillStreak,
+      match.gameStats.HighestKillStreak
+    );
 
     // you only ever get 1 but just in case...
     // ALSO custom games don't get counted here since you can't get awards
     if (match.mode !== ReplayTypes.GameMode.Custom) {
       playerDetailStats.nonCustomGames += 1;
-      if ('awards' in match.gameStats) {
+      if ("awards" in match.gameStats) {
         for (let a in match.gameStats.awards) {
           let awardName = match.gameStats.awards[a];
           if (!(awardName in playerDetailStats.heroes[match.hero].awards))
@@ -136,10 +142,19 @@ function summarizeHeroData(docs) {
     for (let j = 0; j < match.against.ids.length; j++) {
       if (match.with.ids[j] !== match.ToonHandle) {
         if (!(match.with.ids[j] in playerDetailStats.withPlayer)) {
-          playerDetailStats.withPlayer[match.with.ids[j]] = { id: match.with.ids[j], name: match.with.names[j], games: 0, wins: 0 };
+          playerDetailStats.withPlayer[match.with.ids[j]] = {
+            id: match.with.ids[j],
+            name: match.with.names[j],
+            games: 0,
+            wins: 0
+          };
         }
         if (!(match.with.heroes[j] in playerDetailStats.withHero)) {
-          playerDetailStats.withHero[match.with.heroes[j]] = { name: match.with.heroes[j], games: 0, wins: 0 };
+          playerDetailStats.withHero[match.with.heroes[j]] = {
+            name: match.with.heroes[j],
+            games: 0,
+            wins: 0
+          };
         }
 
         playerDetailStats.withPlayer[match.with.ids[j]].games += 1;
@@ -152,10 +167,19 @@ function summarizeHeroData(docs) {
       }
 
       if (!(match.against.ids[j] in playerDetailStats.againstPlayer)) {
-        playerDetailStats.againstPlayer[match.against.ids[j]] = { id: match.against.ids[j], name: match.against.names[j], games: 0, defeated: 0 };
+        playerDetailStats.againstPlayer[match.against.ids[j]] = {
+          id: match.against.ids[j],
+          name: match.against.names[j],
+          games: 0,
+          defeated: 0
+        };
       }
       if (!(match.against.heroes[j] in playerDetailStats.againstHero)) {
-        playerDetailStats.againstHero[match.against.heroes[j]] = { name: match.against.heroes[j], games: 0, defeated: 0 };
+        playerDetailStats.againstHero[match.against.heroes[j]] = {
+          name: match.against.heroes[j],
+          games: 0,
+          defeated: 0
+        };
       }
 
       playerDetailStats.againstPlayer[match.against.ids[j]].games += 1;
@@ -176,7 +200,7 @@ function summarizeHeroData(docs) {
         playerDetailStats.taunts[t].takedowns += bm[j].kills;
         playerDetailStats.taunts[t].deaths += bm[j].deaths;
 
-        if ('duration' in bm[j]) {
+        if ("duration" in bm[j]) {
           playerDetailStats.taunts[t].duration += bm[j].duration;
         }
       }
@@ -184,7 +208,9 @@ function summarizeHeroData(docs) {
 
     // takedowns
     for (let j = 0; j < match.takedowns.length; j++) {
-      playerDetailStats.takedownHistogram[match.takedowns[j].killers.length] += 1;
+      playerDetailStats.takedownHistogram[
+        match.takedowns[j].killers.length
+      ] += 1;
     }
 
     for (let j = 0; j < match.deaths.length; j++) {
@@ -193,7 +219,7 @@ function summarizeHeroData(docs) {
 
     // skins
     if (!(match.skin in playerDetailStats.skins))
-      playerDetailStats.skins[match.skin] = { games: 0, wins: 0};
+      playerDetailStats.skins[match.skin] = { games: 0, wins: 0 };
 
     playerDetailStats.skins[match.skin].games += 1;
 
@@ -223,27 +249,37 @@ function summarizeHeroData(docs) {
 
     for (let s in playerDetailStats.heroes[h].stats) {
       playerDetailStats.total[h][s] = playerDetailStats.heroes[h].stats[s];
-      playerDetailStats.averages[h][s] = playerDetailStats.heroes[h].stats[s] / playerDetailStats.heroes[h].games;
+      playerDetailStats.averages[h][s] =
+        playerDetailStats.heroes[h].stats[s] /
+        playerDetailStats.heroes[h].games;
       playerDetailStats.median[h][s] = median(medianTemp[h][s]);
     }
-    playerDetailStats.heroes[h].stats.totalKDA = playerDetailStats.heroes[h].stats.Takedowns / Math.max(playerDetailStats.heroes[h].stats.Deaths, 1);
+    playerDetailStats.heroes[h].stats.totalKDA =
+      playerDetailStats.heroes[h].stats.Takedowns /
+      Math.max(playerDetailStats.heroes[h].stats.Deaths, 1);
 
-    if ('EndOfMatchAwardMVPBoolean' in playerDetailStats.heroes[h].awards) {
-      playerDetailStats.heroes[h].stats.MVPPct = playerDetailStats.heroes[h].awards.EndOfMatchAwardMVPBoolean / playerDetailStats.heroes[h].games;
-      playerDetailStats.totalMVP += playerDetailStats.heroes[h].awards.EndOfMatchAwardMVPBoolean;
-    }
-    else {
+    if ("EndOfMatchAwardMVPBoolean" in playerDetailStats.heroes[h].awards) {
+      playerDetailStats.heroes[h].stats.MVPPct =
+        playerDetailStats.heroes[h].awards.EndOfMatchAwardMVPBoolean /
+        playerDetailStats.heroes[h].games;
+      playerDetailStats.totalMVP +=
+        playerDetailStats.heroes[h].awards.EndOfMatchAwardMVPBoolean;
+    } else {
       playerDetailStats.heroes[h].stats.MVPPct = 0;
     }
 
-    playerDetailStats.heroes[h].stats.AwardPct = playerDetailStats.heroes[h].totalAwards / playerDetailStats.heroes[h].games;
+    playerDetailStats.heroes[h].stats.AwardPct =
+      playerDetailStats.heroes[h].totalAwards /
+      playerDetailStats.heroes[h].games;
     playerDetailStats.totalAward += playerDetailStats.heroes[h].totalAwards;
     playerDetailStats.totalDeaths += playerDetailStats.heroes[h].stats.Deaths;
     playerDetailStats.totalTD += playerDetailStats.heroes[h].stats.Takedowns;
-    playerDetailStats.totalTimeDead += playerDetailStats.heroes[h].stats.TimeSpentDead;
+    playerDetailStats.totalTimeDead +=
+      playerDetailStats.heroes[h].stats.TimeSpentDead;
     playerDetailStats.totalMatchLength += playerDetailStats.heroes[h].totalTime;
     playerDetailStats.totalVotes += playerDetailStats.heroes[h].votes;
-    playerDetailStats.avgTimeDeadPct += playerDetailStats.heroes[h].stats.timeDeadPct;
+    playerDetailStats.avgTimeDeadPct +=
+      playerDetailStats.heroes[h].stats.timeDeadPct;
   }
   playerDetailStats.avgTimeDeadPct /= playerDetailStats.games;
 

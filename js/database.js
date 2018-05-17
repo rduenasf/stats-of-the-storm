@@ -1,15 +1,14 @@
-/* jshint esversion: 6, maxerr: 1000, node: true */
 // this is the main database connector used by the app
 // storage model is a persistent NeDB
 
 // libraries
-const Parser = require('../parser/parser.js');
-const fs = require('fs');
+const Parser = require("../parser/parser.js");
+const fs = require("fs");
 
-const summarizeHeroData = require('./database/summarize-hero-data');
+const summarizeHeroData = require("./database/summarize-hero-data");
 
 // databases are loaded from the specified folder when the database object is created
-var Datastore = require('nedb-core');
+const Datastore = require("nedb-core");
 
 // ok so you should never call raw db ops on the _db object unless you are debugging.
 // the Database is able to restrict results to a specified collection, allowing multiple views
@@ -24,34 +23,33 @@ class Database {
     // open the databases
     this._db = {};
     var self = this;
-    this._db.matches = new Datastore({ filename: this._path + '/matches.db' });
-    this._db.heroData = new Datastore({ filename: this._path + '/hero.db' });
-    this._db.players = new Datastore({ filename: this._path + '/players.db' });
-    this._db.settings = new Datastore({ filename: this._path + '/settings.db' });
+    this._db.matches = new Datastore({ filename: this._path + "/matches.db" });
+    this._db.heroData = new Datastore({ filename: this._path + "/hero.db" });
+    this._db.players = new Datastore({ filename: this._path + "/players.db" });
+    this._db.settings = new Datastore({
+      filename: this._path + "/settings.db"
+    });
 
-    this._db.matches.ensureIndex({ fieldName: 'map' });
-    this._db.players.ensureIndex({ fieldName: 'hero' });
+    this._db.matches.ensureIndex({ fieldName: "map" });
+    this._db.players.ensureIndex({ fieldName: "hero" });
 
     this._collection = null;
 
     // actual load, tracking errors
     // apologies in advange for these next few lines
-    progress('Loading Settings and Collections');
+    progress("Loading Settings and Collections");
     this._db.settings.loadDatabase(function(err) {
-      if (err)
-        onComplete(err);
+      if (err) onComplete(err);
       else {
-        progress('Loading Player Index');
-        self._db.players.loadDatabase(function (err) {
-          if (err)
-            onComplete(err);
+        progress("Loading Player Index");
+        self._db.players.loadDatabase(function(err) {
+          if (err) onComplete(err);
           else {
-            progress('Loading Match Data');
+            progress("Loading Match Data");
             self._db.matches.loadDatabase(function(err) {
-              if (err)
-                onComplete(err);
+              if (err) onComplete(err);
               else {
-                progress('Loading Player and Hero Data');
+                progress("Loading Player and Hero Data");
                 self._db.heroData.loadDatabase(function(err) {
                   onComplete(err);
                 });
@@ -64,39 +62,69 @@ class Database {
   }
 
   getCollections(callback) {
-    this._db.settings.find({type: 'collection'}, callback);
+    this._db.settings.find({ type: "collection" }, callback);
   }
 
   addCollection(name, onComplete) {
-    this._db.settings.insert({
-      type: 'collection',
-      name: name
-    }, onComplete);
+    this._db.settings.insert(
+      {
+        type: "collection",
+        name: name
+      },
+      onComplete
+    );
   }
 
   deleteCollection(collectionID, onComplete) {
     var self = this;
     this._db.settings.remove({ _id: collectionID }, {}, function(err, removed) {
-      self._db.matches.update({collection: collectionID}, { $pull: { collection: collectionID }}, function(err) {
-        self._db.heroData.update({collection: collectionID}, { $pull: { collection: collectionID }}, {multi: true}, onComplete);
-      });
+      self._db.matches.update(
+        { collection: collectionID },
+        { $pull: { collection: collectionID } },
+        function(err) {
+          self._db.heroData.update(
+            { collection: collectionID },
+            { $pull: { collection: collectionID } },
+            { multi: true },
+            onComplete
+          );
+        }
+      );
     });
   }
 
   // i don't think the next two need callbacks but if so i guess i'll have to add it
   addMatchToCollection(matchID, collectionID) {
     // this actually needs to modify two databases to ensure proper data aggregation
-    this._db.matches.update({ _id: matchID }, { $addToSet: { collection: collectionID }});
-    this._db.heroData.update({ matchID: matchID }, { $addToSet: { collection: collectionID }}, { multi: true });
+    this._db.matches.update(
+      { _id: matchID },
+      { $addToSet: { collection: collectionID } }
+    );
+    this._db.heroData.update(
+      { matchID: matchID },
+      { $addToSet: { collection: collectionID } },
+      { multi: true }
+    );
   }
 
   removeMatchFromCollection(matchID, collectionID) {
-    this._db.matches.update({ _id: matchID }, { $pull: { collection: collectionID }});
-    this._db.heroData.update({ matchID: matchID }, { $pull: { collection: collectionID }}, { multi: true });
+    this._db.matches.update(
+      { _id: matchID },
+      { $pull: { collection: collectionID } }
+    );
+    this._db.heroData.update(
+      { matchID: matchID },
+      { $pull: { collection: collectionID } },
+      { multi: true }
+    );
   }
 
   renameCollection(collectionID, name, onComplete) {
-    this._db.settings.update({_id: collectionID}, { $set: {name: name}}, onComplete);
+    this._db.settings.update(
+      { _id: collectionID },
+      { $set: { name: name } },
+      onComplete
+    );
   }
 
   setCollection(collectionID) {
@@ -109,10 +137,10 @@ class Database {
 
   // this should have a GUI warning, this code sure won't stop you.
   deleteDB() {
-    fs.unlinkSync(this._path + '/matches.db');
-    fs.unlinkSync(this._path + '/hero.db');
-    fs.unlinkSync(this._path + '/players.db');
-    fs.unlinkSync(this._path + '/settings.db');
+    fs.unlinkSync(this._path + "/matches.db");
+    fs.unlinkSync(this._path + "/hero.db");
+    fs.unlinkSync(this._path + "/players.db");
+    fs.unlinkSync(this._path + "/settings.db");
 
     delete this._db;
   }
@@ -131,49 +159,56 @@ class Database {
 
     if (!collection) {
       match.collection = [];
-    }
-    else {
+    } else {
       match.collection = collection;
     }
 
     // temporary relaxation of match length param for duplicate detection
-    this._db.matches.update({ 'map' : match.map, 'date' : match.date, 'type' : match.type }, match, {upsert: true}, function (err, numReplaced, newDoc) {
-      if (!newDoc) {
-        console.log("Duplicate match found, skipping player update");
-      }
-      else {
-        console.log("Inserted new match " + newDoc._id);
+    this._db.matches.update(
+      { map: match.map, date: match.date, type: match.type },
+      match,
+      { upsert: true },
+      function(err, numReplaced, newDoc) {
+        if (!newDoc) {
+          console.log("Duplicate match found, skipping player update");
+        } else {
+          console.log("Inserted new match " + newDoc._id);
 
-        // update and insert players
-        for (var i in players) {
-          players[i].matchID = newDoc._id;
+          // update and insert players
+          for (var i in players) {
+            players[i].matchID = newDoc._id;
 
-          if (collection) {
-            players[i].collection = [collection];
+            if (collection) {
+              players[i].collection = [collection];
+            }
+
+            self._db.heroData.insert(players[i]);
+
+            // log unique players in the player database
+            var playerDbEntry = {};
+            playerDbEntry._id = players[i].ToonHandle;
+            playerDbEntry.name = players[i].name;
+            playerDbEntry.uuid = players[i].uuid;
+            playerDbEntry.region = players[i].region;
+            playerDbEntry.realm = players[i].realm;
+
+            // in general this will ensure the most recent tag gets associated with each player
+            playerDbEntry.tag = players[i].tag;
+
+            var updateEntry = { $set: playerDbEntry, $inc: { matches: 1 } };
+
+            self._db.players.update(
+              { _id: playerDbEntry._id },
+              updateEntry,
+              { upsert: true },
+              function(err, numReplaced, upsert) {
+                if (err) console.log(err);
+              }
+            );
           }
-
-          self._db.heroData.insert(players[i]);
-
-          // log unique players in the player database
-          var playerDbEntry = {};
-          playerDbEntry._id = players[i].ToonHandle;
-          playerDbEntry.name = players[i].name;
-          playerDbEntry.uuid = players[i].uuid;
-          playerDbEntry.region = players[i].region;
-          playerDbEntry.realm = players[i].realm;
-
-          // in general this will ensure the most recent tag gets associated with each player
-          playerDbEntry.tag = players[i].tag;
-
-          var updateEntry = { $set: playerDbEntry, $inc: { matches: 1}};
-
-          self._db.players.update({ _id: playerDbEntry._id }, updateEntry, {upsert: true}, function(err, numReplaced, upsert) {
-            if (err)
-              console.log(err);
-          });
         }
       }
-    });
+    );
   }
 
   // deletes a match and the associated hero data.
@@ -188,13 +223,21 @@ class Database {
       let match = docs[0];
 
       for (let id of match.playerIDs) {
-        self._db.players.update({ _id: id }, { $inc: { matches: -1 }}, { upsert: false });
+        self._db.players.update(
+          { _id: id },
+          { $inc: { matches: -1 } },
+          { upsert: false }
+        );
       }
 
       self._db.matches.remove({ _id: matchID }, {}, function(err, numRemoved) {
-        self._db.heroData.remove({ matchID: matchID }, { multi: true }, function(err, numRemoved) {
-          callback();
-        });
+        self._db.heroData.remove(
+          { matchID: matchID },
+          { multi: true },
+          function(err, numRemoved) {
+            callback();
+          }
+        );
       });
     });
   }
@@ -205,9 +248,19 @@ class Database {
 
   tagReplays(matchIDs, tag, callback) {
     var self = this;
-    this._db.matches.update({ _id: { $in : matchIDs } }, { $addToSet: { tags: tag } }, { multi: true }, function() {
-      self._db.heroData.update({ matchID: { $in: matchIDs } }, { $addToSet: { tags: tag } }, { multi: true }, callback);
-    });
+    this._db.matches.update(
+      { _id: { $in: matchIDs } },
+      { $addToSet: { tags: tag } },
+      { multi: true },
+      function() {
+        self._db.heroData.update(
+          { matchID: { $in: matchIDs } },
+          { $addToSet: { tags: tag } },
+          { multi: true },
+          callback
+        );
+      }
+    );
   }
 
   untagReplay(matchID, tag, callback) {
@@ -216,9 +269,19 @@ class Database {
 
   untagReplays(matchIDs, tag, callback) {
     var self = this;
-    this._db.matches.update({_id: { $in: matchIDs } }, { $pull: { tags: tag } }, { multi: true }, function() {
-      self._db.heroData.update({ matchID: { $in: matchIDs } }, { $pull: { tags: tag } }, { multi: true }, callback);
-    })
+    this._db.matches.update(
+      { _id: { $in: matchIDs } },
+      { $pull: { tags: tag } },
+      { multi: true },
+      function() {
+        self._db.heroData.update(
+          { matchID: { $in: matchIDs } },
+          { $pull: { tags: tag } },
+          { multi: true },
+          callback
+        );
+      }
+    );
   }
 
   getTags(callback) {
@@ -229,11 +292,10 @@ class Database {
       // create set, then return
       let tags = [];
       for (let doc of docs) {
-        if ('tags' in doc) {
+        if ("tags" in doc) {
           let t = doc.tags;
           for (let tag of t) {
-            if (tags.indexOf(tag) === -1)
-              tags.push(tag);
+            if (tags.indexOf(tag) === -1) tags.push(tag);
           }
         }
       }
@@ -244,7 +306,7 @@ class Database {
 
   // teams are stored in settings
   addTeam(players, name, callback) {
-    this._db.settings.insert({ players, name, type: 'team' }, callback);
+    this._db.settings.insert({ players, name, type: "team" }, callback);
   }
 
   // need to query by id, teams are allowed to have the same name
@@ -253,33 +315,48 @@ class Database {
   }
 
   changeTeamName(id, name, callback) {
-    this._db.settings.update({ _id: id} , { $set : { name: name } }, {}, callback);
+    this._db.settings.update(
+      { _id: id },
+      { $set: { name: name } },
+      {},
+      callback
+    );
   }
 
   updateTeamPlayers(id, players, callback) {
-    this._db.settings.update({ _id: id}, { players }, {}, callback);
+    this._db.settings.update({ _id: id }, { players }, {}, callback);
   }
 
   addPlayerToTeam(id, player, callback) {
-    this._db.settings.update({_id: id}, { $addToSet: { players: player }}, {}, callback);
+    this._db.settings.update(
+      { _id: id },
+      { $addToSet: { players: player } },
+      {},
+      callback
+    );
   }
 
   removePlayerFromTeam(id, player, callback) {
-    this._db.settings.update({_id:id}, { $pull: { players: player}}, {}, callback);
+    this._db.settings.update(
+      { _id: id },
+      { $pull: { players: player } },
+      {},
+      callback
+    );
   }
 
   getAllTeams(callback) {
-    this._db.settings.find({type: 'team'}, callback);
+    this._db.settings.find({ type: "team" }, callback);
   }
 
   getTeam(id, callback) {
-    this._db.settings.findOne({_id: id}, callback);
+    this._db.settings.findOne({ _id: id }, callback);
   }
 
   // checks to see if all of the given players are on a team
   getTeamByPlayers(players, callback) {
-    let query = { $and: []};
-    query.type = 'team';
+    let query = { $and: [] };
+    query.type = "team";
 
     for (let p of players) {
       query.$and.push({ players: p });
@@ -289,7 +366,7 @@ class Database {
   }
 
   getPlayerTeams(id, callback) {
-    this._db.settings.find({ type: 'team', players: id }, callback);
+    this._db.settings.find({ type: "team", players: id }, callback);
   }
 
   checkDuplicate(file, callback) {
@@ -324,7 +401,7 @@ class Database {
     search.$where = function() {
       let d = new Date(this.date);
       return dateMin <= d && d <= dateMax;
-    }
+    };
 
     // this is the one raw call that is not preprocessed by collections for what should be somewhat obvious reasons
     this._db.matches.find(search, function(err, docs) {
@@ -352,20 +429,17 @@ class Database {
       this.preprocessQuery(query);
     }
 
-    if ('sort' in opts) {
+    if ("sort" in opts) {
       let cursor;
-      if ('projection' in opts)
+      if ("projection" in opts)
         cursor = this._db.matches.find(query, opts.projection);
-      else
-        cursor = this._db.matches.find(query);
+      else cursor = this._db.matches.find(query);
 
       cursor.sort(opts.sort).exec(callback);
-    }
-    else {
-      if ('projection' in opts) {
+    } else {
+      if ("projection" in opts) {
         this._db.matches.find(query, opts.projection, callback);
-      }
-      else {
+      } else {
         this._db.matches.find(query, callback);
       }
     }
@@ -375,31 +449,35 @@ class Database {
     this.preprocessQuery(query);
 
     let skip = pageNum * limit;
-    this._db.matches.find(query, projection).skip(skip).limit(limit).sort({date: -1}).exec(callback);
+    this._db.matches
+      .find(query, projection)
+      .skip(skip)
+      .limit(limit)
+      .sort({ date: -1 })
+      .exec(callback);
   }
 
   // updates the entire match
   updateMatch(match, callback) {
     if (callback) {
       this._db.matches.update({ _id: match._id }, match, {}, callback);
-    }
-    else {
+    } else {
       this._db.matches.update({ _id: match._id }, match, {});
     }
   }
 
   // retrieves matches by id
   getMatchesByID(ids, callback, opts = {}) {
-    let query = {$or: []};
+    let query = { $or: [] };
     for (let i in ids) {
-      query.$or.push({_id: ids[i]});
+      query.$or.push({ _id: ids[i] });
     }
 
     this.getMatches(query, callback, opts);
   }
 
   getHeroDataForID(matchID, callback) {
-    let query = {matchID: matchID};
+    let query = { matchID: matchID };
 
     this.preprocessQuery(query);
     this._db.heroData.find(query, callback);
@@ -407,7 +485,7 @@ class Database {
 
   // returns all hero data entries for the given player id
   getHeroDataForPlayer(playerID, callback) {
-    let query = {ToonHandle: playerID};
+    let query = { ToonHandle: playerID };
 
     this.preprocessQuery(query);
     this._db.heroData.find(query, callback);
@@ -429,7 +507,7 @@ class Database {
   getHeroDataForMatches(ids, query, callback) {
     query.$or = [];
     for (let i in ids) {
-      query.$or.push({ matchID : ids[i]});
+      query.$or.push({ matchID: ids[i] });
     }
 
     this.preprocessQuery(query);
@@ -437,20 +515,17 @@ class Database {
   }
 
   getPlayers(query, callback, opts = {}) {
-    if ('sort' in opts) {
+    if ("sort" in opts) {
       let cursor;
-      if ('projection' in opts)
+      if ("projection" in opts)
         cursor = this._db.players.find(query, opts.projection);
-      else
-        cursor = this._db.players.find(query);
+      else cursor = this._db.players.find(query);
 
       cursor.sort(opts.sort).exec(callback);
-    }
-    else {
-      if ('projection' in opts) {
+    } else {
+      if ("projection" in opts) {
         this._db.players.find(query, opts.projection, callback);
-      }
-      else {
+      } else {
         this._db.players.find(query, callback);
       }
     }
@@ -460,11 +535,16 @@ class Database {
   // note that players are not part of the collection, so uh, i guess the UI should just not show
   // players with 0 things in the database?
   getPlayer(id, callback) {
-    this.getPlayers({_id: id}, callback);
+    this.getPlayers({ _id: id }, callback);
   }
 
   setPlayerNickname(id, name, callback) {
-    this._db.players.update({ _id: id }, { $set : { nickname: name } }, {}, callback);
+    this._db.players.update(
+      { _id: id },
+      { $set: { nickname: name } },
+      {},
+      callback
+    );
   }
 
   // hero data is separated by hero, if you need the total stuff, use this function
@@ -473,8 +553,7 @@ class Database {
     let stats = {};
     for (let h in data.total) {
       for (let s in data.total[h]) {
-        if (!(s in stats))
-          stats[s] = 0;
+        if (!(s in stats)) stats[s] = 0;
 
         stats[s] += data.total[h][s];
       }
@@ -492,11 +571,19 @@ class Database {
   getVersions(callback) {
     let query = {};
     this.preprocessQuery(query);
-    this._db.matches.find(query, {version: 1}, function(err, docs) {
-      let versions = {}
+    this._db.matches.find(query, { version: 1 }, function(err, docs) {
+      let versions = {};
 
       for (let doc of docs) {
-        versions[doc.version.m_build] = doc.version.m_major + '.' + doc.version.m_minor + '.' + doc.version.m_revision + ' (build ' + doc.version.m_build + ')';
+        versions[doc.version.m_build] =
+          doc.version.m_major +
+          "." +
+          doc.version.m_minor +
+          "." +
+          doc.version.m_revision +
+          " (build " +
+          doc.version.m_build +
+          ")";
       }
 
       callback(versions);
@@ -506,15 +593,17 @@ class Database {
   // the DB is versioned based on the parser's current version number.
   getDBVersion(callback) {
     var self = this;
-    this._db.settings.findOne({type: 'version'}, function(err, ver) {
+    this._db.settings.findOne({ type: "version" }, function(err, ver) {
       if (!ver) {
         // non-existence of version is assumed to mean a new database
         // initialize with current version
-        self._db.settings.insert({type: 'version', version: Parser.VERSION }, function(err, inserted) {
-          callback(inserted.version);
-        });
-      }
-      else {
+        self._db.settings.insert(
+          { type: "version", version: Parser.VERSION },
+          function(err, inserted) {
+            callback(inserted.version);
+          }
+        );
+      } else {
         callback(ver.version);
       }
     });
@@ -522,11 +611,15 @@ class Database {
 
   // this may turn into upgrade functions eventually but for now we'll just do this
   setDBVersion(version, callback) {
-    this._db.settings.update({type: 'version'}, { $set: {version: version} }, {}, function(err, updated) {
-      // basically an on complete callback
-      if (callback)
-        callback();
-    });
+    this._db.settings.update(
+      { type: "version" },
+      { $set: { version: version } },
+      {},
+      function(err, updated) {
+        // basically an on complete callback
+        if (callback) callback();
+      }
+    );
   }
 
   // given a collection ID, returnes the cached heroData summary for the collection.
@@ -543,13 +636,16 @@ class Database {
     // get the data
     var self = this;
     this._db.heroData.count(query, function(err, heroDataCount) {
-      let cid = collectionID ? collectionID : 'all';
+      let cid = collectionID ? collectionID : "all";
 
-      self._db.settings.find({ type: 'cache', collectionID: cid }, function(err, docs) {
+      self._db.settings.find({ type: "cache", collectionID: cid }, function(
+        err,
+        docs
+      ) {
         if (docs.length === 0 || docs[0].docLength !== heroDataCount) {
           // no docs exist or data is out of date, recompute
           self._db.heroData.find(query, function(err, heroData) {
-            console.log('recaching for collection ' + cid);
+            console.log("recaching for collection " + cid);
 
             let hdata = summarizeHeroData(heroData);
 
@@ -560,16 +656,20 @@ class Database {
             // just live with the knowledge that I wrote this line and will have to live with my sins
             cache.heroData = JSON.stringify(hdata);
             cache.docLength = heroDataCount;
-            cache.type = 'cache';
+            cache.type = "cache";
             cache.collectionID = cid;
 
-            self._db.settings.update({ type: 'cache', collectionID: cid }, cache, { upsert: true }, function(err, num, up) {
-              cache.heroData = JSON.parse(cache.heroData);
-              callback(cache);
-            });
+            self._db.settings.update(
+              { type: "cache", collectionID: cid },
+              cache,
+              { upsert: true },
+              function(err, num, up) {
+                cache.heroData = JSON.parse(cache.heroData);
+                callback(cache);
+              }
+            );
           });
-        }
-        else {
+        } else {
           let cache = docs[0];
           cache.heroData = JSON.parse(cache.heroData);
 
@@ -580,20 +680,22 @@ class Database {
   }
 
   getExternalCacheCollections(callback) {
-    this._db.settings.find({ type: 'externalCache' }, callback);
+    this._db.settings.find({ type: "externalCache" }, callback);
   }
 
   getExternalCacheCollectionHeroStats(collectionID, callback) {
-    this._db.settings.find({ type: 'externalCache',  _id: collectionID }, function(err, docs) {
-      if (docs.length > 0) {
-        let cache = docs[0];
-        cache.heroData = JSON.parse(cache.heroData);
-        callback(cache);
+    this._db.settings.find(
+      { type: "externalCache", _id: collectionID },
+      function(err, docs) {
+        if (docs.length > 0) {
+          let cache = docs[0];
+          cache.heroData = JSON.parse(cache.heroData);
+          callback(cache);
+        } else {
+          callback();
+        }
       }
-      else {
-        callback();
-      }
-    });
+    );
   }
 
   // dumps summarized hero data for each collection in the other database.
@@ -603,63 +705,90 @@ class Database {
     let self = this;
     let tempDB = new Database(path);
 
-    tempDB.load(function() {
-      tempDB.getCollections(function(err, collections) {
-        tempDB.getHeroData({}, function(err, heroData) {
-          let hdata = summarizeHeroData(heroData);
+    tempDB.load(
+      function() {
+        tempDB.getCollections(function(err, collections) {
+          tempDB.getHeroData({}, function(err, heroData) {
+            let hdata = summarizeHeroData(heroData);
 
-          let cache = {};
-          cache.dbName = name;
-          cache.name = name;
-          cache.type = 'externalCache';
-          cache.collectionID = 'all';
-          cache.heroData = JSON.stringify(hdata);
+            let cache = {};
+            cache.dbName = name;
+            cache.name = name;
+            cache.type = "externalCache";
+            cache.collectionID = "all";
+            cache.heroData = JSON.stringify(hdata);
 
-          self._db.settings.update({ type: 'externalCache', dbName: cache.dbName, name: cache.name }, cache, { upsert: true }, function(err, num, up) {
-            if (collections.length > 0) {
-              self.processExternalCaches(collections.pop(), name, collections, tempDB, callback);
-            }
-            else {
-              callback();
-            }
-          })
+            self._db.settings.update(
+              { type: "externalCache", dbName: cache.dbName, name: cache.name },
+              cache,
+              { upsert: true },
+              function(err, num, up) {
+                if (collections.length > 0) {
+                  self.processExternalCaches(
+                    collections.pop(),
+                    name,
+                    collections,
+                    tempDB,
+                    callback
+                  );
+                } else {
+                  callback();
+                }
+              }
+            );
+          });
         });
-      });
-    }, function(log) { console.log(log) ; })
+      },
+      function(log) {
+        console.log(log);
+      }
+    );
   }
 
   processExternalCaches(current, dbName, collections, tempDB, final) {
     let self = this;
-    tempDB.getHeroData({collection: current._id}, function(err, heroData) {
+    tempDB.getHeroData({ collection: current._id }, function(err, heroData) {
       let hdata = summarizeHeroData(heroData);
 
       let cache = {};
       cache.dbName = dbName;
       cache.name = current.name;
-      cache.type = 'externalCache';
+      cache.type = "externalCache";
       cache.collectionID = current._id;
       cache.heroData = JSON.stringify(hdata);
 
-      self._db.settings.update({ type: 'externalCache', dbName: cache.dbName, name: cache.name }, cache, { upsert: true }, function(err, num, up) {
-        if (collections.length === 0) {
-          final();
+      self._db.settings.update(
+        { type: "externalCache", dbName: cache.dbName, name: cache.name },
+        cache,
+        { upsert: true },
+        function(err, num, up) {
+          if (collections.length === 0) {
+            final();
+          } else {
+            self.processExternalCaches(
+              collections.pop(),
+              dbName,
+              collections,
+              tempDB,
+              final
+            );
+          }
         }
-        else {
-          self.processExternalCaches(collections.pop(), dbName, collections, tempDB, final);
-        }
-      })
-    })
+      );
+    });
   }
 
   // external cache stuff
   deleteExternalCache(dbName, callback) {
-    this._db.settings.remove({ dbName: dbName, type: 'externalCache' }, { multi: true }, function(err, numRemoved) {
-      if (err)
-        console.log(err);
+    this._db.settings.remove(
+      { dbName: dbName, type: "externalCache" },
+      { multi: true },
+      function(err, numRemoved) {
+        if (err) console.log(err);
 
-      if (callback)
-        callback();
-    });
+        if (callback) callback();
+      }
+    );
   }
 }
 
