@@ -69,11 +69,7 @@ function initTeamsPage() {
 
   $('#team-hero-summary .menu .item').tab();
 
-  $('#team-edit-menu').dropdown({
-    onChange: function(value, text, $elem) {
-      handleTeamMenuCallback(value);
-    }
-  });
+  $("#team-edit-menu").dropdown({ onChange: handleTeamMenuCallback });
 
   $('#team-roster-stats .top.attached.menu .item').click(function() {
     toggleTeamRosterMode(this);
@@ -106,9 +102,7 @@ function initTeamsPage() {
     updateTeamData($('#team-set-team').dropdown('get value'), $('#team-set-team').dropdown('get text'));
   });
 
-  $('#team-file-menu').dropdown({
-    onChange: handleTeamMenuCallback
-  });
+  $('#team-file-menu').dropdown({ onChange: handleTeamMenuCallback });
   $('#team-print-sections .ui.dropdown').dropdown();
 }
 
@@ -118,8 +112,7 @@ function populateTeamCollectionMenu() {
   $('#team-compare-collection .menu').append('<div class="ui divider"></div>');
 
   DB.getCollections(function(err, collections) {
-    for (let c in collections) {
-      let col = collections[c];
+    for (const col of collections) {
       $('#team-compare-collection .menu').append('<div class="item" data-value="' + col._id + '">' + col.name + '</div>');
     }
 
@@ -141,7 +134,6 @@ function updateTeamsFilter(hero, map) {
   teamsHeroDataFilter = hero;
   teamsMapDataFilter = map;
   $('#team-filter-button').addClass('green');
-
   updateTeamData($('#team-set-team').dropdown('get value'), $('#team-set-team').dropdown('get text'));
 }
 

@@ -46,9 +46,23 @@ function formatDelta(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
+// given player object, formats player name accoriding to options
+function formatPlayerName(player, opts = {}) {
+  let name = player.name;
+
+  if (!opts.noTag && player.tag) {
+    name += '#' + player.tag;
+  }
+
+  return name;
+}
+
+
+
 module.exports = {
   formatSeconds,
   formatStat,
   capitalize,
-  formatDelta
+  formatDelta,
+  formatPlayerName
 };

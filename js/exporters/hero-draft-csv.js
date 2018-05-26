@@ -6,9 +6,6 @@ function heroDraftCSV(matchData, Heroes) {
   outData += fields.join(',');
 
   for (let h in matchData.data) {
-    if (h === 'totalMatches' || h === 'totalBans')
-      continue;
-
     let hero = matchData.data[h];
 
     let row = '';
@@ -26,7 +23,7 @@ function heroDraftCSV(matchData, Heroes) {
     row += ',' + hero.picks.round1.wins;
     row += ',' + hero.picks.round2.wins;
     row += ',' + hero.picks.round3.wins;
-    row += ',' + matchData.data.totalMatches;
+    row += ',' + matchData.totalMatches;
 
     outData += '\n' + row;
   }

@@ -37,8 +37,9 @@ const {
   formatSeconds,
   formatStat,
   capitalize,
-  formatDelta
-} = require('./js/util/formatters');
+  formatDelta,
+  formatPlayerName
+} = require("./js/util/formatters");
 
 
 Handlebars.registerHelper('formatSeconds', formatSeconds);
@@ -92,7 +93,7 @@ var bgWindow;
 // update functions
 ipcRenderer.on('updateReady', function(event, message) {
   // display a popup message to alert people
-  let text = `An update has been downloaded and will be installed automatically
+  const text = `An update has been downloaded and will be installed automatically
     when the application closes. If you can't wait, you can close and re-open the
     app to get the latest features.`
   showMessage('Update Ready!', text, { class: 'positive', sticky: true });
@@ -198,7 +199,7 @@ function initGlobalUIHandlers() {
     sidebar('attach events', '#show-sidebar-button');
 
   $('#main-menu a.item').each(function(idx, elem) {
-    let sectionName = $(elem).attr('section-name');
+    const sectionName = $(elem).attr('section-name');
     $(elem).click(function() {
       changeSection(sectionName);
       $('#main-menu').sidebar('hide');
@@ -289,7 +290,7 @@ function getTemplate(name, selector) {
 }
 
 function createBGWindow() {
-  let bgPath = 'file://' + path.join(__dirname, './background.html');
+  const bgPath = 'file://' + path.join(__dirname, './background.html');
   bgWindow = new BrowserWindow({width: 400, hegith: 400, show: false});
   bgWindow.loadURL(bgPath);
   //bgWindow.webContents.openDevTools();
@@ -311,8 +312,7 @@ function changeSection(to, overrideBack, action) {
     prevSections = [];
   }
 
-  for (let s in sections)
-    hideSection(s);
+  for (const s in sections) hideSection(s);
 
   // ok wait also hide the menu cause that changes from section to section
   $('#section-menu .section-submenu').addClass('is-hidden');
@@ -364,106 +364,58 @@ function globalDBUpdate() {
 // called on keydown for all player input fields
 function updatePlayerMenuOptions(elem, value) {
   // ok so like search for the player i guess
-  let q = new RegExp(value, 'i');
+  const q = new RegExp(value, 'i');
   DB.getPlayers({ $or: [{name: { $regex: q } }, { nickname: { $regex: q } }] }, function(err, players) {
-    let menu = $(elem).parent('.dropdown');
+    const menu = $(elem).parent('.dropdown');
     menu.find('.menu .item').not('.active').remove();
     menu.find('.message').remove();
 
     // limit 10 for perf
-    let max = settings.get('playerThreshold');
-    let count = 0;
-    for (let player of players) {
-      if (count > max)
-        break;
-
-      let name = formatPlayerName(player);
-
-      let item = '<div class="item" data-value="' + player._id + '">';
-      //item += '<div class="ui horizontal label"><i class="file outline icon"></i>' + player.matches + '</div>';
-      item += '<div class="item" data-value="' + player._id + '">' + name + ' (' + RegionString[player.region] + ')</div>'
-
+    const max = settings.get('playerThreshold');
+    for (const player of players.slice(0, max)) {
+      const name = formatPlayerName(player);
+      const item = '<div class="item" data-value="' + player._id + '">' + name + ' (' + RegionString[player.region] + ')</div>'
       menu.find('.menu').append(item);
-      count += 1
     }
 
     menu.dropdown('refresh');
   });
 }
 
-// given player object, formats player name accoriding to options
-function formatPlayerName(player, opts = {}) {
-  let name = player.name;
-
-  if (!opts.noTag && player.tag) {
-    name += '#' + player.tag;
-  }
-
-  return name;
-}
-
 // given a user id, returns 'focus-player' class if the player id is, well, the focus player
 function focusClass(id) {
-  if (id === settings.get('selectedPlayerID'))
-    return 'focus-player';
-
-  return '';
+  return id === settings.get('selectedPlayerID') ? 'focus-player' : '';
 }
+
 
 // given a json object this function will insert the proper hero menu items into the
 // structure. it will NOT initialize callbacks for the menu, that is up to the caller
 function addHeroMenuOptions(menu) {
-  let heroes = Heroes.allHeroNames;
-
-  menu.find('.menu').html('');
-  for (let i in heroes) {
-    let elem = '<div class="item" data-value="' + heroes[i] + '"><img class="ui avatar image" src="assets/heroes-talents/images/heroes/';
-    elem += Heroes.heroIcon(heroes[i]) + '">' + heroes[i] + '</div>';
-    menu.find('.menu').append(elem);
-  }
+  const template = getHandlebars("global", "#hero-menu-options");
+  menu.find('.menu').html(template({ collection: Heroes.allHeroNames }));
 }
 
 function addMapMenuOptions(menu) {
-  menu.find('.menu').html('');
-  for (let m in ReplayTypes.MapType) {
-    let map = ReplayTypes.MapType[m];
-    menu.find('.menu').append('<div class="item" data-value="' + map + '">' + map + '</div>');
-  }
+  const template = getHandlebars("global", "#value-value-menu-options");
+  menu.find('.menu').html(template({ collection: ReplayTypes.MapType }));
 }
 
 function addPatchMenuOptions(elem, callback) {
   DB.getVersions(function(versions) {
-    elem.find('.menu').html('');
-
-    for (let v in versions) {
-      elem.find('.menu').append('<div class="item" data-value="' + v + '">' + versions[v] + '</div>');
-    }
-
+    const template = getHandlebars("global", "#key-value-menu-options");
+    elem.find(".menu").html(template({ collection: versions }));
     callback();
   });
 }
 
 function populateTeamMenu(elem) {
   DB.getAllTeams(function(err, docs) {
-    elem.find('.menu').html('');
 
-    let keys = [];
-    for (let d in docs) {
-      keys.push({ index: d, value: docs[d].name });
-    }
-    keys = keys.sort(function(a, b) {
-      if (a.value < b.value)
-        return -1;
-      if (b.value < a.value)
-        return 1;
-      return 0;
-    });
+    const sorted = Object.values(docs);
+    sorted.sort((a, b) => a.name.localeCompare(b.name));
 
-    for (let i of keys) {
-      let d = i.index;
-      elem.find('.menu').append('<div class="item" data-value="' + docs[d]._id + '">' + docs[d].name + '</div>');
-    }
-
+    const template = getHandlebars("global", "#team-menu-options");
+    elem.find(".menu").html(template({ collection: sorted }));
     elem.dropdown('refresh');
   });
 }
@@ -472,36 +424,23 @@ function updateCollectionMenu(callback) {
   // add the proper options n stuff
   DB.getCollections(function(err, collections) {
     // alpha sort
-    collections.sort(function(a, b) {
-      if (a.name < b.name) {
-        return -1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-
-      return 0;
-    });
-
+    collections.sort((a, b) => a.name.localeCompare(b.name));
     $('#collection-switch-menu .menu').html('');
 
     // generic collection menus do not get the clear option
     $('.collection-menu .menu').html('');
     $('#collection-switch-menu .menu').append('<div class="item" data-value="none">All Matches</div>');
 
-    if (collections.length > 0)
-      $('#collection-switch-menu .menu').append('<div class="ui divider"></div>');
+    if (collections.length > 0) $('#collection-switch-menu .menu').append('<div class="ui divider"></div>');
 
-    for (let c in collections) {
-      let collection = collections[c];
+    // uhhhhh yeah special case (probably bad but i'm doing it anyway)
+    $("#settings-collection-import .menu").append('<div class="item" data-value="">[No Collection]</div>');
 
-      let elem = '<div class="item" data-value="' + collection._id + '">' + collection.name + '</div>';
+    for (const collection of collections) {
+      const elem = `<div class="item" data-value="${collection._id}">${collection.name}</div>`;
       $('#collection-switch-menu .menu').append(elem);
       $('.collection-menu .menu').append(elem);
     }
-
-    // uhhhhh yeah special case (probably bad but i'm doing it anyway)
-    $('#settings-collection-import .menu').prepend('<div class="item" data-value="">[No Collection]</div>');
 
     $('#collection-switch-menu').dropdown('refresh');
     $('.collection-menu').dropdown('refresh');
@@ -521,8 +460,7 @@ function populateStatCollectionMenus() {
       $('.cache-collections .menu').append('<div class="ui divider"></div>');
     }
 
-    for (let c in collections) {
-      let col = collections[c];
+    for (const col of collections) {
       $('.cache-collections .menu').append('<div class="item" data-value="' + col._id + '">' + col.name + '</div>');
     }
 
@@ -531,8 +469,7 @@ function populateStatCollectionMenus() {
         $('.cache-collections .menu').append('<div class="ui divider"></div>')
       }
 
-      for (let c in collections) {
-        let col = collections[c];
+      for (const col of collections) {
         $('.cache-collections .menu').append('<div class="item" data-value="' + col._id + '" data-type="external">' + col.dbName + ': ' + col.name + '</div>');
       }
 
@@ -544,16 +481,10 @@ function populateStatCollectionMenus() {
 // populates the tag menu with available tags
 function populateTagMenu(menu, callback) {
   DB.getTags(function(tags) {
-    menu.find('.menu').html('');
-
-    for (let tag of tags) {
-      menu.find('.menu').append('<div class="item" data-value="' + tag + '">' + tag + '</div>');
-    }
-
+    const template = getHandlebars("global", "#value-value-menu-options");
+    menu.find(".menu").html(template({ collection: tags }));
     menu.dropdown('refresh');
-
-    if (callback)
-      callback();
+    if (callback) callback();
   });
 }
 
@@ -576,9 +507,7 @@ function resetAllSections() {
   populateTeamMenu($('.team-menu'));
 
   for (s in sections) {
-    if (sections[s].reset) {
-      sections[s].reset();
-    }
+    if (sections[s].reset) sections[s].reset();
   }
 }
 
@@ -638,12 +567,11 @@ function showMessage(title, text, opts = {}) {
 }
 
 function exportMatch(id, filename) {
-  DB.getMatchesByID([id], function(err, docs) {
-    let match = docs[0];
-    DB.getHeroDataForID(id, function(err, docs) {
-      let matchExport = {
-        match: match,
-        players: docs
+  DB.getMatchByID(id, function(err, match) {
+    DB.getHeroDataForID(id, function(err, players) {
+      const matchExport = {
+        match,
+        players
       };
       fs.writeFile(filename, JSON.stringify(matchExport, null, 2), function(err) {
         if (err) {
@@ -659,7 +587,7 @@ function exportMatch(id, filename) {
 
 function exportPlayer(id, filename) {
   DB.getHeroDataForPlayer(id, function(err, docs) {
-    let data = summarizeHeroData(docs);
+    const data = summarizeHeroData(docs);
     fs.writeFile(filename, JSON.stringify(data, null, 2), function(err) {
       if (err) {
         showMessage('Export Error', err, { class: 'negative' });
@@ -695,7 +623,7 @@ function getPrintPage(page) {
 }
 
 function addPrintHeader(title, page) {
-  let t = '<h1 class="ui dividing header new-page">' + title + '</h1>';
+  const t = `<h1 class="ui dividing header new-page">${title}</h1>`;
 
   if (!page) {
     $('#print-window .contents').append(t)
@@ -706,7 +634,7 @@ function addPrintHeader(title, page) {
 }
 
 function addPrintSubHeader(title, page) {
-  let t = '<h2 class="ui dividing header new-page">' + title + '</h2>';
+  const t = `<h2 class="ui dividing header new-page">${title}</h2>`;
 
   if (!page) {
     $('#print-window .contents').append(t);
@@ -718,8 +646,8 @@ function addPrintSubHeader(title, page) {
 
 function copyFloatingTable(src, dest) {
   // float thead pulls the headers out, we'll put them back in and copy to the specified destination element
-  let table = src.clone();
-  let headers = table.find('.floatThead-table thead').detach();
+  const table = src.clone();
+  const headers = table.find('.floatThead-table thead').detach();
   table.find('.floatThead-container').remove();
 
   if (headers.length > 0) {
@@ -759,7 +687,7 @@ function copyGraph(srcData, dest, opts = {}) {
 
   // hey lets deep copy objects by straight up serializing them and then
   // deserializing the string ??????????
-  let data = {}
+  const data = {};
   data.type = srcData.type;
   data.options = JSON.parse(JSON.stringify(srcData.options));
   data.options.legend.labels.fontColor = 'black';
@@ -777,7 +705,7 @@ function copyGraph(srcData, dest, opts = {}) {
 
   data.data = srcData.data;
 
-  let tmpChart = new Chart(dest, data);
+  const tmpChart = new Chart(dest, data);
 }
 
 function renderAndPrint(filename, size = 'Letter', landscape = false) {
@@ -787,13 +715,7 @@ function renderAndPrint(filename, size = 'Letter', landscape = false) {
   $('#print-window .ui').removeClass('inverted');
 
   // let's be honest i am really bad at browser windows
-  let windows = BrowserWindow.getAllWindows();
-  let win = null;
-  for (let window of windows) {
-    if (window.getTitle() === 'Stats of the Storm') {
-      win = window;
-    }
-  }
+  const win = BrowserWindow.getAllWindows().find((window) => window.getTitle() === 'Stats of the Storm');
 
   win.webContents.printToPDF({ landscape: landscape, pageSize: size }, function(error, data) {
     if (error) {

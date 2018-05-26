@@ -1,19 +1,7 @@
 // list of selected match ids
 // note that this isn't the currently displayed match ids, that's a different one
-const summaryProjection = {
-  _id: 1,
-  teams: 1,
-  length: 1,
-  map: 1,
-  mode: 1,
-  date: 1,
-  winner: 1,
-  version: 1,
-  bans: 1,
-  tags: 1
-};
 
-const matchesPerPage = 10;
+const MATCHES_PER_PAGE = 10;
 
 var currentPage;
 var matchRowTemplate;
@@ -368,86 +356,86 @@ function selectMatches() {
 }
 
 function showPage(pageNum) {
-  DB.countMatches(matchSearchQuery, function(err, count) {
-    $('#matches-selected').text(count);
+  DB.matchesPagination(
+    matchSearchQuery,
+    MATCHES_PER_PAGE,
+    pageNum,
+    ({ count, matches }) => {
+      $("#matches-selected").text(count);
 
-    let maxPages = Math.ceil(count / matchesPerPage);
-    if (0 <= pageNum && pageNum < maxPages) {
-      DB.getMatchPage(matchSearchQuery, pageNum, matchesPerPage, summaryProjection, function(err, selectedMatches) {
+      for (let i = 0; i < MATCHES_PER_PAGE; i++) {
+        $('tr[slot="' + i + '"]').html("");
+      }
+
+      if (count === 0) {
+        $("#match-list-page-menu").html("");
+      }
+
+      let maxPages = Math.ceil(count / MATCHES_PER_PAGE);
+      if (matches.length > 0) {
+        const selectedMatches = matches;
         // clear
-        for (let i = 0; i < matchesPerPage; i++) {
-          $('tr[slot="' + i + '"]').html('');
-        }
 
         // so like pick the correct range and just render it
         for (let i = 0; i < selectedMatches.length; i++) {
-            renderToSlot(selectedMatches[i], i);
+          renderToSlot(selectedMatches[i], i);
         }
         currentPage = pageNum;
-
-        // update the pagination buttons
-        $('#match-list-page-menu').html('');
 
         // determine what to show
         let show = Array.from(new Array(5), (x, i) => i - 2 + currentPage);
         // first, we always have the first page
-        let elems = '';
+        let elems = "";
         if (currentPage > 0)
-          elems += '<a class="icon item prev"><i class="left chevron icon"></i></a>';
+          elems +=
+            '<a class="icon item prev"><i class="left chevron icon"></i></a>';
         elems += '<a class="item" page="1">1</a>';
 
-        if (show[0] >= 2)
-          elems += '<a class="item disabled">...</a>';
+        if (show[0] >= 2) elems += '<a class="item disabled">...</a>';
 
         for (let i = 0; i < show.length; i++) {
           let pn = show[i];
 
-          if (pn < 1 || pn >= maxPages - 1)
-            continue;
+          if (pn < 1 || pn >= maxPages - 1) continue;
 
-          elems += '<a class="item" page="' + (pn + 1) + '">' + (pn + 1) + '</a>';
+          elems +=
+            '<a class="item" page="' + (pn + 1) + '">' + (pn + 1) + "</a>";
         }
 
         if (show[show.length - 1] < maxPages - 2)
           elems += '<a class="item disabled">...</a>';
 
         if (maxPages > 1) {
-          elems += '<a class="item" page="' + maxPages + '">' + maxPages + '</a>';
+          elems +=
+            '<a class="item" page="' + maxPages + '">' + maxPages + "</a>";
         }
 
         if (currentPage < maxPages - 1)
-          elems += '<a class="icon item next"><i class="right chevron icon"></i></a>';
+          elems +=
+            '<a class="icon item next"><i class="right chevron icon"></i></a>';
 
-        $('#match-list-page-menu').html(elems);
-        $('#match-list-page-menu .item[page="' + (currentPage + 1) + '"]').addClass('active');
+        $("#match-list-page-menu").html(elems);
+        $(
+          '#match-list-page-menu .item[page="' + (currentPage + 1) + '"]'
+        ).addClass("active");
 
-        $('#match-list-page-menu .item').click(function() {
-          if ($(this).hasClass('disabled'))
-            return;
+        $("#match-list-page-menu .item").click(function() {
+          if ($(this).hasClass("disabled")) return;
 
-          if ($(this).hasClass('next'))
-            showPage(currentPage + 1);
-          else if ($(this).hasClass('prev'))
-            showPage(currentPage - 1);
-          else
-            showPage(parseInt($(this).attr('page')) - 1);
+          if ($(this).hasClass("next")) showPage(currentPage + 1);
+          else if ($(this).hasClass("prev")) showPage(currentPage - 1);
+          else showPage(parseInt($(this).attr("page")) - 1);
         });
 
-        $('#match-page-table .match-summary').click(function() {
-          let id = $(this).attr('match-id');
-          loadMatchData(id, function() { changeSection('match-detail'); });
-        })
-      });
-    }
-    else {
-      for (let i = 0; i < matchesPerPage; i++) {
-        $('tr[slot="' + i + '"]').html('');
-      }
-      if (count === 0) {
-        $('#match-list-page-menu').html('');
+        $("#match-page-table .match-summary").click(function() {
+          let id = $(this).attr("match-id");
+          loadMatchData(id, function() {
+            changeSection("match-detail");
+          });
+        });
       }
     }
-  });
+  );
 }
 
 function renderToSlot(gameData, slot) {

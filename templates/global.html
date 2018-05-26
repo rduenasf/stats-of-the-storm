@@ -1,0 +1,25 @@
+<script id="hero-menu-options" type="text/x-handlebars-template">
+   {{#each collection}}
+  <div class="item" data-value="{{this}}">
+    <img class="ui avatar image" src="{{heroImage this}}">{{this}}
+  </div>
+  {{/each}}
+</script>
+
+<script id="value-value-menu-options" type="text/x-handlebars-template">
+  {{#each collection}}
+  <div class="item" data-value="{{this}}">{{this}}</div>
+  {{/each}}
+</script>
+
+<script id="key-value-menu-options" type="text/x-handlebars-template">
+  {{#each collection}}
+  <div class="item" data-value="{{@key}}">{{this}}</div>
+  {{/each}}
+</script>
+
+<script id="team-menu-options" type="text/x-handlebars-template">
+  {{#each collection}}
+  <div class="item" data-value="{{_id}}">{{name}}</div>
+  {{/each}}
+</script>

@@ -11,6 +11,19 @@ const summarizeHeroData = require('./database/summarize-hero-data');
 // databases are loaded from the specified folder when the database object is created
 var Datastore = require('nedb');
 
+const SUMMARY_PROJECTION = {
+  _id: 1,
+  teams: 1,
+  length: 1,
+  map: 1,
+  mode: 1,
+  date: 1,
+  winner: 1,
+  version: 1,
+  bans: 1,
+  tags: 1
+};
+
 // ok so you should never call raw db ops on the _db object unless you are debugging.
 // the Database is able to restrict results to a specified collection, allowing multiple views
 // of the same data. This is automatically handled by the database if you use the DB.query ops
@@ -18,6 +31,25 @@ var Datastore = require('nedb');
 class Database {
   constructor(databasePath) {
     this._path = databasePath;
+  }
+
+  matchesPagination(matchSearchQuery, matchesPerPage, pageNum, callback) {
+    this.countMatches(matchSearchQuery, (err, count) => {
+      const maxPages = Math.ceil(count / matchesPerPage);
+        if (0 <= pageNum && pageNum < maxPages) {
+          this.getMatchPage(
+            matchSearchQuery,
+            pageNum,
+            matchesPerPage,
+            SUMMARY_PROJECTION,
+            (err, matches) => {
+              callback({ count, matches });
+            }
+          );
+        } else {
+          return callback({ count, matches: [] });
+        }
+    });
   }
 
   load(onComplete, progress) {
@@ -346,6 +378,26 @@ class Database {
     }
   }
 
+  getMatch(query, callback, opts = {}) {
+    if (opts.collectionOverride !== true) {
+      this.preprocessQuery(query);
+    }
+
+    if ("sort" in opts) {
+      let cursor;
+      if ("projection" in opts) cursor = this._db.matches.findOne(query, opts.projection);
+      else cursor = this._db.matches.findOne(query);
+
+      cursor.sort(opts.sort).exec(callback);
+    } else {
+      if ("projection" in opts) {
+        this._db.matches.findOne(query, opts.projection, callback);
+      } else {
+        this._db.matches.findOne(query, callback);
+      }
+    }
+  }
+
   // retrieves a match from the database using the given query
   getMatches(query, callback, opts = {}) {
     if (opts.collectionOverride !== true) {
@@ -389,13 +441,8 @@ class Database {
   }
 
   // retrieves matches by id
-  getMatchesByID(ids, callback, opts = {}) {
-    let query = {$or: []};
-    for (let i in ids) {
-      query.$or.push({_id: ids[i]});
-    }
-
-    this.getMatches(query, callback, opts);
+  getMatchByID(id, callback, opts = {}) {
+    this.getMatch({ _id: id }, callback, opts);
   }
 
   getHeroDataForID(matchID, callback) {

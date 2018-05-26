@@ -449,11 +449,10 @@ function matchDetailTeamAction(action) {
 // retrieves the proper data and then renders to the page
 function loadMatchData(id, doneLoadCallback) {
   // this is actually a series of callbacks...
-  DB.getMatchesByID([id], function(err, doc) {
-    if (doc === [])
-      return;
+  DB.getMatchByID(id, function(err, match) {
+    if (!match) return;
 
-    matchDetailMatch = doc[0];
+    matchDetailMatch = match;
     DB.getHeroDataForID(id, function(err, docs) {
       loadMatch(docs, doneLoadCallback);
     });

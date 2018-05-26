@@ -159,6 +159,7 @@ function loadOverallHeroCollectionData() {
   DB.getMatches(heroCollectionMapDataFilter, function(err, docs) {
     let matchData = summarizeMatchData(docs, Heroes);
     let overallStats = matchData.data;
+    debugger;
 
     $('#hero-collection-summary tbody').html('');
     $('#hero-collection-picks tbody').html('');
@@ -167,9 +168,6 @@ function loadOverallHeroCollectionData() {
     let totalBan = 0;
 
     for (let h in overallStats) {
-      if (h === 'totalMatches' || h === 'totalBans')
-        continue;
-
       let hero = overallStats[h];
       let role = Heroes.role(h);
 
@@ -190,44 +188,36 @@ function loadOverallHeroCollectionData() {
       roleData[role].games += hero.games;
       roleData[role].wins += hero.wins;
 
-      if (hero.involved < heroCollectionHeroMatchThresh)
-        continue;
+      if (hero.involved < heroCollectionHeroMatchThresh) continue;
 
-      let context = {};
-      context.heroName = h;
-      context.winPercent = hero.games === 0 ? 0 : hero.wins / hero.games;
-      context.formatWinPercent = formatStat('pct', context.winPercent);
-      context.banPercent = hero.bans.total / overallStats.totalMatches;
-      context.formatBanPercent = formatStat('pct', context.banPercent);
-      context.popPercent = hero.involved / overallStats.totalMatches;
-      context.formatPopPercent = formatStat('pct', context.popPercent);
-      context.games = hero.games;
-      context.win = hero.wins;
-      context.loss = hero.games - hero.wins;
-      context.bans = hero.bans.total;
-      context.heroRole = Heroes.role(h);
+      const context = {
+        heroName: h,
+        winPercent: hero.games === 0 ? 0 : hero.wins / hero.games,
+        banPercent: hero.bans.total / matchData.totalMatches,
+        popPercent: hero.involved / matchData.totalMatches,
+        games: hero.games,
+        win: hero.wins,
+        loss: hero.games - hero.wins,
+        bans: hero.bans.total,
+        heroRole: Heroes.role(h),
+      };
 
       $('#hero-collection-summary tbody').append(heroCollectionSummaryRowTemplate(context));
 
-      let banContext = {};
-      banContext.format = {};
-      banContext.games = hero.games;
-      banContext.heroName = h;
-      banContext.heroRole = context.heroRole;
-      banContext.winPercent = context.winPercent;
-      banContext.format.winPercent = context.formatWinPercent;
-      banContext.banPercent = context.banPercent;
-      banContext.format.banPercent = context.formatBanPercent;
-      banContext.bans = hero.bans;
-      banContext.firstBanPercent = hero.bans.first / overallStats.totalMatches;
-      banContext.format.firstBanPercent = formatStat('pct', banContext.firstBanPercent);
-      banContext.secondBanPercent = hero.bans.second / overallStats.totalMatches;
-      banContext.format.secondBanPercent = formatStat('pct', banContext.secondBanPercent);
-      banContext.picks = hero.picks;
+      const banContext = {
+        games: hero.games,
+        heroName: h,
+        heroRole: context.heroRole,
+        winPercent: context.winPercent,
+        banPercent: context.banPercent,
+        bans: hero.bans,
+        firstBanPercent: hero.bans.first / matchData.totalMatches,
+        secondBanPercent: hero.bans.second / matchData.totalMatches,
+        picks: hero.picks,
+      };
 
       for (let p in banContext.picks) {
-        banContext.picks[p].pct = banContext.picks[p].count / overallStats.totalMatches;
-        banContext.picks[p].formatPct = formatStat('pct', banContext.picks[p].pct);
+        banContext.picks[p].pct = banContext.picks[p].count / matchData.totalMatches;
       }
 
       $('#hero-collection-picks tbody').append(heroCollectionPickRowTemplate(banContext));
@@ -280,7 +270,7 @@ function loadOverallHeroCollectionData() {
       let comp = matchData.compositions[key];
       let row = '<tr><td class="center aligned" data-sort-value="' + key + '">' + getCompositionElement(comp.roles) + '</td>';
       row += '<td class="center aligned" data-sort-value="' + (comp.wins / comp.games) + '">' + formatStat('pct', comp.wins / comp.games) + '</td>';
-      row += '<td class="center aligned" data-sort-value="' + (comp.games / (overallStats.totalMatches * 2)) + '">' + formatStat('pct', comp.games / (overallStats.totalMatches * 2)) + '</td>';
+      row += '<td class="center aligned" data-sort-value="' + (comp.games / (matchData.totalMatches * 2)) + '">' + formatStat('pct', comp.games / (matchData.totalMatches * 2)) + '</td>';
       row += '<td class="center aligned" data-sort-value="' + comp.wins + '">' + comp.wins + '</td>';
       row += '<td class="center aligned" data-sort-value="' + (comp.games - comp.wins) + '">' + (comp.games - comp.wins) + '</td>';
       row += '<td class="center aligned" data-sort-value="' + comp.games + '">' + comp.games + '</td></tr>';
@@ -369,6 +359,7 @@ function renderHeroCollectionVsStatsTo(container, stats, threshold, avg) {
 
   for (let h in stats) {
     let context = stats[h];
+    if (context.games < threshold) continue;
 
     if ('defeated' in context) {
       context.winPercent = context.defeated / context.games;
@@ -388,8 +379,7 @@ function renderHeroCollectionVsStatsTo(container, stats, threshold, avg) {
     context.formatAvgDelta = (context.avgDelta > 0 ? '+' : '') + formatStat('pct', context.avgDelta);
     context.deltaClass = (context.avgDelta > 0) ? 'plus' : ((context.avgDelta < 0) ? 'minus' : '');
 
-    if (context.games >= threshold)
-      container.find('tbody').append(heroCollectionHeroWinRowTemplate(context));
+    container.find('tbody').append(heroCollectionHeroWinRowTemplate(context));
   }
 }
 

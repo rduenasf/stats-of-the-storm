@@ -14,8 +14,8 @@ function deltaMax(v1, v2) {
 
 function summarizeTrendData(p1stats, p2stats) {
   const stats = {
-    period1: p1stats.data,
-    period2: p2stats.data
+    period1: p1stats,
+    period2: p2stats
   };
 
   const hContext = [];
@@ -23,10 +23,9 @@ function summarizeTrendData(p1stats, p2stats) {
   // should aggregate these since some heroes might not show up in both periods
   const aggr = {};
   for (let period in stats) {
-    const data = stats[period];
+    const data = stats[period].data;
 
     for (let heroName in data) {
-      if (heroName === 'totalMatches' || heroName === 'totalBans') continue;
       aggr[heroName] = aggr[heroName] || {};
 
       const hero = data[heroName];
@@ -35,8 +34,8 @@ function summarizeTrendData(p1stats, p2stats) {
       const win = {
         heroName,
         winPercent: hero.games === 0 ? 0 : hero.wins / hero.games,
-        banPercent: hero.bans.total / data.totalMatches,
-        popPercent: hero.involved / data.totalMatches,
+        banPercent: hero.bans.total / stats[period].totalMatches,
+        popPercent: hero.involved / stats[period].totalMatches,
         games: hero.games,
         win: hero.wins,
         loss: hero.games - hero.wins,
@@ -53,13 +52,13 @@ function summarizeTrendData(p1stats, p2stats) {
         winPercent: win.winPercent,
         banPercent: win.banPercent,
         bans: hero.bans,
-        firstBanPercent: hero.bans.first / data.totalMatches,
-        secondBanPercent: hero.bans.second / data.totalMatches,
+        firstBanPercent: hero.bans.first / stats[period].totalMatches,
+        secondBanPercent: hero.bans.second / stats[period].totalMatches,
         picks: hero.picks
       };
 
       for (let pick in draft.picks) {
-        draft.picks[pick].pct = draft.picks[pick].count / data.totalMatches;
+        draft.picks[pick].pct = draft.picks[pick].count / stats[period].totalMatches;
       }
 
       aggr[heroName][period] = { win, draft };
@@ -173,7 +172,7 @@ function summarizeTrendData(p1stats, p2stats) {
     // nothing exists yet
     comps[c] = {
       p1Win: comp.wins / comp.games,
-      p1Pop: comp.games / (p1stats.data.totalMatches * 2),
+      p1Pop: comp.games / (p1stats.totalMatches * 2),
       p2Win: 0,
       p2Pop: 0,
       winDelta: -1,
@@ -194,7 +193,7 @@ function summarizeTrendData(p1stats, p2stats) {
     }
 
     comps[c].p2Win = comp.wins / comp.games;
-    comps[c].p2Pop = comp.games / (p2stats.data.totalMatches * 2);
+    comps[c].p2Pop = comp.games / (p2stats.totalMatches * 2);
 
     comps[c].winDelta = deltaMax(comps[c].p1Win, comps[c].p2Win);
     comps[c].popDelta = deltaMax(comps[c].p1Pop, comps[c].p2Pop);

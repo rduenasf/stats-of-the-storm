@@ -3,9 +3,9 @@
 // need a heroes talents instance to process the bans
 // it also returns various team related stats
 function summarizeMatchData(docs, HeroesTalents) {
-  let data = {};
-  data.totalMatches = docs.length;
-  data.totalBans = 0;
+  const data = {};
+  let totalMatches = docs.length;
+  let totalBans = 0;
 
   // keyed by a sorted concatenated string of hero roles
   let compositions = {};
@@ -135,7 +135,7 @@ function summarizeMatchData(docs, HeroesTalents) {
 
           data[hero].involved += 1;
           data[hero].bans.total += 1;
-          data.totalBans += 1;
+          totalBans += 1;
         } catch (e) {
           console.log(e);
         }
@@ -143,7 +143,7 @@ function summarizeMatchData(docs, HeroesTalents) {
     }
   }
 
-  return { data, compositions };
+  return { data, compositions, totalMatches, totalBans };
 }
 
 module.exports = summarizeMatchData;
