@@ -233,7 +233,7 @@ function processReplay(file, HeroesTalents, opts = {}) {
             break;
           } else {
             console.log("Unrecognized internal map name: " + internalMap);
-            return { status: ReplayStats.UnsupportedMap };
+            return { status: ReplayStatus.UnsupportedMap };
           }
         }
       }
@@ -254,7 +254,7 @@ function processReplay(file, HeroesTalents, opts = {}) {
 
     // check for duplicate matches somewhere else, this function executes without async calls
     // until insertion. Should have a processReplays function that does the de-duplication.
-    //this._db.matches.find({ 'map' : match.map, 'date' : match.date, 'loopLength' : match.loopLength }, function(err, docs) {
+    // this._db.matches.find({ 'map' : match.map, 'date' : match.date, 'loopLength' : match.loopLength }, function(err, docs) {
 
     // players
     // the match will just store the players involed. The details will be stored

@@ -1,3 +1,5 @@
+const summarizeTrendData = require("./js/database/summarize-trend-data");
+
 var trendsHeroDataFilter;
 var trendsMapDataFilter;
 var trendsHeroMatchThreshold = 0;
@@ -197,7 +199,7 @@ function loadTrends() {
       let p1stats = summarizeMatchData(dp1, Heroes);
       let p2stats = summarizeMatchData(dp2, Heroes);
 
-      const { hContext, comps } = summarizeTrendData(p1stats, p2stats);
+      const { hContext, comps } = summarizeTrendData(p1stats, p2stats, Heroes, trendsHeroMatchThreshold);
 
       for (let context of hContext) {
         $("#hero-trends-summary tbody").append(

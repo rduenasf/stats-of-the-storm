@@ -5,8 +5,6 @@
 const path = require("path");
 const settings = require("electron-settings");
 
-const watch = require("node-watch");
-
 const { shell, remote, ipcRenderer } = require("electron");
 const { app, dialog, BrowserWindow } = remote;
 
@@ -20,12 +18,9 @@ const HeroesTalents = require("./js/heroes-talents.js");
 const ReplayTypes = require("./parser/constants.js");
 
 const summarizeHeroData = require("./js/database/summarize-hero-data");
-const summarizeMapData = require("./js/database/summarize-map-data");
 const summarizeMatchData = require("./js/database/summarize-match-data");
 const summarizePlayerData = require("./js/database/summarize-player-data");
-const summarizeTalentData = require("./js/database/summarize-talent-data");
 const summarizeTeamData = require("./js/database/summarize-team-data");
-const summarizeTrendData = require("./js/database/summarize-trend-data");
 
 const heroDataCSV = require("./js/exporters/hero-csv");
 const heroDraftCSV = require("./js/exporters/hero-draft-csv");
@@ -56,10 +51,8 @@ const RegionString = {
   98: "PTR/TR"
 };
 
-const DetailStatList = require("./js/game-data/detail-stat-list");
-
 const PerMapStatList = require("./js/game-data/map-stats");
-
+const DetailStatList = require("./js/game-data/detail-stat-list");
 const DetailStatString = require("./js/game-data/detail-stat-string");
 
 const RoleColor = {
@@ -341,7 +334,7 @@ function loadSections() {
   // Matches should be the default view of the app.
   // this can be changed for development to test specific pages of course.
   // this is the dev setting.
-  //changeSection('hero-collection');
+  // changeSection('hero-collection');
 
   // this is the release default
   changeSection("matches");

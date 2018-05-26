@@ -1,3 +1,5 @@
+const summarizeMapData = require("./js/database/summarize-map-data");
+
 var mapsHeroDataFilter;
 var mapsMapDataFilter;
 var mapsMapRowTemplate;

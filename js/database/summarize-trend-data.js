@@ -1,4 +1,6 @@
 // initial value, final value
+const { formatStat } = require("../util/formatters");
+
 function delta(v1, v2) {
   if (v1 === 0) return v2;
   if (v2 === 0) return -1 * v1;
@@ -12,7 +14,12 @@ function deltaMax(v1, v2) {
   return (v2 - v1) / v1;
 }
 
-function summarizeTrendData(p1stats, p2stats) {
+function summarizeTrendData(
+  p1stats,
+  p2stats,
+  Heroes,
+  trendsHeroMatchThreshold
+) {
   const stats = {
     period1: p1stats.data,
     period2: p2stats.data

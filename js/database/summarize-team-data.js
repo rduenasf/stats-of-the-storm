@@ -230,7 +230,7 @@ function summarizeTeamData(team, docs, HeroesTalents) {
       }
     } catch (e) {
       // usually thrown for quick match. if picks aren't being recorded, uncomment this.
-      //console.log(e);
+      // console.log(e);
     }
 
     // stat aggregation

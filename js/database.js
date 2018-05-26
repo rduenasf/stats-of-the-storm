@@ -285,16 +285,14 @@ class Database {
   }
 
   getTags(callback) {
-    var self = this;
-    let query = {};
+    const query = {};
     this.preprocessQuery(query);
     this._db.matches.find(query, { tags: 1 }, function(err, docs) {
       // create set, then return
-      let tags = [];
+      const tags = [];
       for (let doc of docs) {
         if ("tags" in doc) {
-          let t = doc.tags;
-          for (let tag of t) {
+          for (const tag of doc.tags) {
             if (tags.indexOf(tag) === -1) tags.push(tag);
           }
         }
@@ -383,7 +381,7 @@ class Database {
     // same type
     search.type = header.type;
 
-    //search.loopLength = data.header.m_elapsedGameLoops;
+    // search.loopLength = data.header.m_elapsedGameLoops;
 
     // same map
     search.map = header.map;
@@ -636,7 +634,7 @@ class Database {
     // get the data
     var self = this;
     this._db.heroData.count(query, function(err, heroDataCount) {
-      let cid = collectionID ? collectionID : "all";
+      const cid = collectionID || "all";
 
       self._db.settings.find({ type: "cache", collectionID: cid }, function(
         err,

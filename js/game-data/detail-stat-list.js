@@ -34,14 +34,14 @@ const DetailStatList = [
   "TimeRootingEnemyHeroes",
   "TimeSilencingEnemyHeroes",
   "TimeStunningEnemyHeroes",
-  //'TimeOnPoint',
+  // 'TimeOnPoint',
   "OnFireTimeOnFire",
   "ExperienceContribution",
   "XPM",
   "MercCampCaptures",
-  //'TownKills',
+  // 'TownKills',
   "WatchTowerCaptures"
-  //'Role'
+  // 'Role'
 ];
 
 module.exports = DetailStatList;

@@ -1,6 +1,7 @@
 const { median } = require("../util/math");
 const DetailStatList = require("../game-data/detail-stat-list");
 const PerMapStatList = require("../game-data/map-stats.js");
+const ReplayTypes = require("../../parser/constants.js");
 
 // this will go an process a set of heroData into a set of stats divided
 // by hero, and by map
@@ -112,7 +113,7 @@ function summarizeHeroData(docs) {
     if (tdp < playerDetailStats.min[match.hero].timeDeadPct)
       playerDetailStats.min[match.hero].timeDeadPct = tdp;
 
-    //playerDetailStats.heroes[match.hero].stats.highestStreak = Math.max(match.gameStats.HighestKillStreak, playerDetailStats.heroes[match.hero].stats.highestStreak);
+    // playerDetailStats.heroes[match.hero].stats.highestStreak = Math.max(match.gameStats.HighestKillStreak, playerDetailStats.heroes[match.hero].stats.highestStreak);
     playerDetailStats.highestStreak = Math.max(
       playerDetailStats.max[match.hero].HighestKillStreak,
       match.gameStats.HighestKillStreak
@@ -207,14 +208,12 @@ function summarizeHeroData(docs) {
     }
 
     // takedowns
-    for (let j = 0; j < match.takedowns.length; j++) {
-      playerDetailStats.takedownHistogram[
-        match.takedowns[j].killers.length
-      ] += 1;
+    for (const takedown of match.takedowns) {
+      playerDetailStats.takedownHistogram[takedown.killers.length] += 1;
     }
 
-    for (let j = 0; j < match.deaths.length; j++) {
-      playerDetailStats.deathHistogram[match.deaths[j].killers.length] += 1;
+    for (const death of match.deaths) {
+      playerDetailStats.deathHistogram[death.killers.length] += 1;
     }
 
     // skins

@@ -3,6 +3,10 @@ const cp = require("child_process");
 
 // this script assumes you are running it from the heroprotocol folder
 fs.readdir("./", function(err, items) {
+  if (err) {
+    // do something
+  }
+
   let cmd = "pyinstaller";
   let args = ["./heroprotocol.py", "-y"];
   for (let i in items) {

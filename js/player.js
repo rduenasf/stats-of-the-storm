@@ -1,4 +1,5 @@
 const moment = require("moment");
+const summarizeTalentData = require("./js/database/summarize-talent-data");
 
 var playerDetailID;
 var playerDetailStats;

@@ -35,7 +35,7 @@ function heroDataCSV(docs) {
   outData += ",Tier 7 Choice";
 
   // time for exporting
-  for (doc of docs) {
+  for (const doc of docs) {
     let row = "";
 
     // identifiers

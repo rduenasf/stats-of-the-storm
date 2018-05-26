@@ -263,7 +263,7 @@ const MercUnitType = {
   MercLanerMeleeOgre: "MercLanerMeleeOgre",
   MercLanerMeleeKnight: "MercLanerMeleeKnight",
   MercLanerRangedMage: "MercLanerRangedMage"
-  //MercSummonerLanerMinionDummy: 'MercSummonerLanerMinionDummy' -- this is cool but the amount of data it spits out is frankly absurd
+  // MercSummonerLanerMinionDummy: 'MercSummonerLanerMinionDummy' -- this is cool but the amount of data it spits out is frankly absurd
 };
 
 const MercUnitString = {
